@@ -26,7 +26,10 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/at_biometric_integration/css/at_biometric_integration.css"
-# app_include_js = "/assets/at_biometric_integration/js/at_biometric_integration.js"
+# app_include_js = [
+#     "/assets/at_biometric_integration/js/client_scripts/employee.js",
+#     "/assets/at_biometric_integration/js/client_scripts/employee_checkin.js"
+# ]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/at_biometric_integration/css/at_biometric_integration.css"
@@ -174,9 +177,9 @@ app_license = "mit"
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "at_biometric_integration.event.get_events"
-# }
+override_whitelisted_methods = {
+	"at_biometric_integration.api.sync_biometric_attendance": "at_biometric_integration.at_biometric_integration.api.sync_biometric_attendance"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -242,3 +245,16 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+scheduler_events = {
+    "daily": ["biometrics_integration.api.sync_biometric_attendance"],
+    "cron": {
+		# 12 hours
+		"0 0/12 * * *": [
+			"biometrics_integration.api.sync_biometric_attendance",
+		],
+    }
+    }
+app_include_js = [
+        "/assets/at_biometric_integration/js/client_scripts/employee_checkin.js",
+        "/assets/at_biometric_integration/js/client_scripts/employee.js"
+    ]
