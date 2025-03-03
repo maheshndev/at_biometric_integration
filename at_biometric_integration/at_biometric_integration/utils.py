@@ -1,6 +1,6 @@
 import frappe
 import requests
-import datetime
+
 from zk import ZK
 
 @frappe.whitelist()
