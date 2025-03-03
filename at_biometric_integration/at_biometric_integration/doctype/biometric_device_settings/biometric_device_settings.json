@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-27 11:54:53.059976",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "device_name",
+  "device_ip",
+  "device_port",
+  "clear_from_device_on_fetch",
+  "column_break_fzmu",
+  "sync_schedule_time",
+  "sync_from_date",
+  "sync_to_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "device_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Device Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "device_ip",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Device IP",
+   "reqd": 1
+  },
+  {
+   "fieldname": "device_port",
+   "fieldtype": "Data",
+   "label": "Device Port"
+  },
+  {
+   "default": "0",
+   "fieldname": "clear_from_device_on_fetch",
+   "fieldtype": "Check",
+   "label": "Clear From Device On Fetch"
+  },
+  {
+   "fieldname": "column_break_fzmu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sync_schedule_time",
+   "fieldtype": "Time",
+   "label": "Sync Schedule Time"
+  },
+  {
+   "fieldname": "sync_from_date",
+   "fieldtype": "Date",
+   "label": "Sync From Date"
+  },
+  {
+   "fieldname": "sync_to_date",
+   "fieldtype": "Date",
+   "label": "Sync To Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-27 12:02:19.545598",
+ "modified_by": "Administrator",
+ "module": "At Biometric Integration",
+ "name": "Biometric Device Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
