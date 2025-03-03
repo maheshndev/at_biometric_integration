@@ -5,11 +5,14 @@ from zk import ZK
 
 @frappe.whitelist()
 def fetch_and_upload_attendance():
+    response = {"success": [], "errors": []}
+    
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "sync_from_date"])
+    
     for device in devices:
-        ip, port, sync_date = device["device_ip"], device["device_port"], device["sync_from_date"]
+        ip, port, sync_date = device["device_ip"], device.get("device_port", 4370), device["sync_from_date"]
         try:
-            conn = ZK(ip, port=int(port), timeout=30).connect()
+            conn = ZK(ip, port=int(port), timeout=30, force_udp=False, ommit_ping=False).connect()
             if conn:
                 attendances = conn.get_attendance()
                 for log in attendances:
@@ -25,16 +28,28 @@ def fetch_and_upload_attendance():
                                     "employee": employee,
                                     "time": log.timestamp,
                                     "log_type": "IN" if log.punch in [0, 4] else "OUT",
-                                    "device_id": ip
+                                    "device_id": log.user_id
                                 })
                                 checkin_doc.insert()
                                 frappe.db.commit()
+                                # response["success"].append(f"Attendance recorded for {employee} at {log.timestamp}")
+                            # else:
+                                # response["errors"].append(f"Duplicate entry for {employee} at {log.timestamp}")
                     except Exception as e:
-                        frappe.log_error(f"Error processing log for user {log.user_id}: {str(e)}", "Biometric Sync Error")
+                        error_msg = f"Error processing log for user {log.user_id}: {str(e)}"
+                        frappe.log_error(error_msg, "Biometric Sync Error")
+                        response["errors"].append(error_msg)
                 conn.disconnect()
+            else:
+                error_msg = f"Failed to connect to device {ip}"
+                frappe.log_error(error_msg, "Biometric Device Connection Error")
+                response["errors"].append(error_msg)
         except Exception as e:
-            frappe.log_error(f"Error connecting to device {ip}: {str(e)}", "Biometric Device Connection Error")     
-    return "Attendance Synced Successfully"
+            error_msg = f"Error connecting to device {ip}: {str(e)}"
+            frappe.log_error(error_msg, "Biometric Device Connection Error")
+            response["errors"].append(error_msg)
+    
+    return response
 
 
 @frappe.whitelist()
