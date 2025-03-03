@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 import json
 import datetime
 from zk import ZK
@@ -55,20 +56,38 @@ def upload_attendance_to_erpnext(attendance_logs, employees):
                 "employee": employee["name"],
                 "time": timestamp,
                 "log_type": punch,
-                "device_id":employee["attendance_device_id"] ,
-                "shift": employee["default_shift"],
+                "device_id": employee["attendance_device_id"] ,
+                # "shift": employee["default_shift"],
             })
             checkin.insert(ignore_permissions=True)
             frappe.db.commit()
         except Exception as e:
             frappe.log_error(f"Error inserting Employee Checkin: {str(e)}", "Employee Checkin Error")
 
-@frappe.whitelist()
+
 def sync_biometric_attendance():
     """Main function to fetch and upload attendance data."""
-    devices, employees = get_device_and_employee_details()
-    for device in devices:
-        attendance_logs = get_biometric_attendance(device["device_ip"], device["port"])
-        upload_attendance_to_erpnext(attendance_logs, employees)
-        frappe.logger().info(f"Attendance synced for device {device['device_ip']}")
+    # return {"message": "hello"}
+    try:
+        devices, employees = get_device_and_employee_details()
+        for device in devices:
+            attendance_logs = get_biometric_attendance(device["device_ip"], device["port"])
+            upload_attendance_to_erpnext(attendance_logs, employees)
+            frappe.logger().info(f"Attendance synced for device {device['device_ip']}")
+        return {"status": "success", "message": "Biometric attendance synced successfully!"}
+    except Exception as e:
+        frappe.logger().error(f"Error syncing biometric attendance: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
+
+
+
+"""Triggers the biometric attendance sync process"""
+@frappe.whitelist()
+def trigger_biometric_sync():
+    try:
+        result = sync_biometric_attendance()
+        return {"status": "success", "message": result}
+    except Exception as e:
+        frappe.log_error(f"Biometric Sync Failed: {str(e)}", "Biometric Sync Error")
+        return {"status": "error", "message": str(e)}

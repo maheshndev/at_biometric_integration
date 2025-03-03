@@ -27,8 +27,8 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/at_biometric_integration/css/at_biometric_integration.css"
 # app_include_js = [
-#     "/assets/at_biometric_integration/js/client_scripts/employee.js",
-#     "/assets/at_biometric_integration/js/client_scripts/employee_checkin.js"
+#     "/assets/at_biometric_integration/js/employee.js",
+#     "/assets/at_biometric_integration/js/employee_checkin.js"
 # ]
 
 # include js, css files in header of web template
@@ -47,7 +47,11 @@ app_license = "mit"
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {
+  "Employee Checkin": "public/js/employee_checkin.js",
+  "Employee": "public/js/employee.js",
+}
+
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -178,7 +182,8 @@ app_license = "mit"
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"at_biometric_integration.api.sync_biometric_attendance": "at_biometric_integration.at_biometric_integration.api.sync_biometric_attendance"
+  "test_new": "at_biometric_integration.utils.test_new",
+  "sync_biometric_attendance": "at_biometric_integration.api.trigger_biometric_sync"
 }
 #
 # each overriding function accepts a `data` argument;
@@ -245,16 +250,12 @@ override_whitelisted_methods = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-scheduler_events = {
-    "daily": ["biometrics_integration.api.sync_biometric_attendance"],
-    "cron": {
-		# 12 hours
-		"0 0/12 * * *": [
-			"biometrics_integration.api.sync_biometric_attendance",
-		],
-    }
-    }
-app_include_js = [
-        "/assets/at_biometric_integration/js/client_scripts/employee_checkin.js",
-        "/assets/at_biometric_integration/js/client_scripts/employee.js"
-    ]
+# scheduler_events = {
+#     "daily": ["at_biometric_integration.at_biometric_integration.utils.sync_biometric_attendance"],
+#     "cron": {
+# 		# 12 hours
+# 		"0 0/12 * * *": [
+# 			"at_biometric_integration.at_biometric_integration.utils.sync_biometric_attendance",
+# 		],
+#     }
+#     }
