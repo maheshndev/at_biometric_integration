@@ -262,11 +262,26 @@ doctype_list_js = {
 
 scheduler_events = {
     "cron": {
-        "0 12 * * *": [
+        "46 09 * * *": [
             "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
         ]
     },
     "daily": [
-          "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
+          "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
+          "at_biometric_integration.at_biometric_integration.doctype.attendance_regularization.attendance_regularization.check_missing_checkins"
     ]
 }
+
+fixtures = [
+    {
+        "doctype": "Workflow",
+        "filters": [["workflow_name", "=", "Attendance Regularization Approval"]]
+    },
+    {
+        "doctype": "Report",
+        "filters": [
+            ["name", "in", ["Employee Working Hours Report"]]
+        ]
+    }
+]
+
