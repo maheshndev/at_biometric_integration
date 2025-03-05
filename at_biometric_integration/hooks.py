@@ -181,10 +181,10 @@ doctype_list_js = {
 # Overriding Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-  "test_new": "at_biometric_integration.utils.test_new",
-  "sync_biometric_attendance": "at_biometric_integration.api.trigger_biometric_sync"
-}
+# override_whitelisted_methods = {
+#   "test_new": "at_biometric_integration.utils.test_new",
+#   "sync_biometric_attendance": "at_biometric_integration.api.trigger_biometric_sync"
+# }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -259,3 +259,14 @@ override_whitelisted_methods = {
 # 		],
 #     }
 #     }
+
+scheduler_events = {
+    "cron": {
+        "0 12 * * *": [
+            "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
+        ]
+    },
+    "daily": [
+          "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
+    ]
+}
