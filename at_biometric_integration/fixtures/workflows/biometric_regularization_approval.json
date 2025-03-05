@@ -1,0 +1,41 @@
+{
+    "doctype": "Workflow",
+    "workflow_name": "Attendance Regularization Approval",
+    "document_type": "Attendance Regularization",
+    "is_active": 1,
+    "workflow_state_field": "status",
+    "states": [
+        {
+            "state": "Pending",
+            "allow_edit": "Employee",
+            "doc_status": 0,
+            "is_default": 1
+        },
+        {
+            "state": "Approved",
+            "allow_edit": "HR Manager",
+            "doc_status": 1
+        },
+        {
+            "state": "Rejected",
+            "allow_edit": "HR Manager",
+            "doc_status": 1
+        }
+    ],
+    "transitions": [
+        {
+            "state": "Pending",
+            "action": "Approve",
+            "next_state": "Approved",
+            "allowed": "HR Manager",
+            "allow_self_approval": 0
+        },
+        {
+            "state": "Pending",
+            "action": "Reject",
+            "next_state": "Rejected",
+            "allowed": "HR Manager",
+            "allow_self_approval": 0
+        }
+    ]
+}
