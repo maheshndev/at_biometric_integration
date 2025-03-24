@@ -250,27 +250,26 @@ doctype_list_js = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-# scheduler_events = {
-#     "daily": ["at_biometric_integration.at_biometric_integration.utils.sync_biometric_attendance"],
-#     "cron": {
-# 		# 12 hours
-# 		"0 0/12 * * *": [
-# 			"at_biometric_integration.at_biometric_integration.utils.sync_biometric_attendance",
-# 		],
-#     }
-#     }
-
 scheduler_events = {
-    "cron": {
-        "46 09 * * *": [
-            "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
-        ]
-    },
     "daily": [
-          "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
-          "at_biometric_integration.at_biometric_integration.doctype.attendance_regularization.attendance_regularization.check_missing_checkins"
-    ]
+        "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
+        # "propms.auto_custom.statusChangeAfterLeaseExpire",
+    ],
+    "cron": {"38 11 * * *": ["at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"]},
 }
+# scheduler_events = {
+#     "cron": {
+#         "*/16 * * * *": [
+#             "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
+#             "at_biometric_integration.at_biometric_integration.utils.process_attendance"
+#         ]
+#     },
+#     "daily": [
+#           "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
+#         #   "at_biometric_integration.at_biometric_integration.doctype.attendance_regularization.attendance_regularization.check_missing_checkins",
+#           "at_biometric_integration.at_biometric_integration.utils.mark_daily_attendance"
+#     ]
+# }
 
 fixtures = [
     {
