@@ -96,9 +96,6 @@ def create_frappe_attendance(ip):
             employee = frappe.get_value("Employee", {"attendance_device_id": record['user_id']}, "name")
             if employee:
                 attendance_date = record['timestamp'].split(" ")[0]
-                if is_holiday_or_leave(employee, attendance_date):
-                    frappe.logger().info(f"Skipping record for {employee} on {attendance_date} (Holiday/Leave).")
-                    continue
 
                 existing_checkin = frappe.get_all("Employee Checkin",
                     filters={"employee": employee, "time": record['timestamp']},
