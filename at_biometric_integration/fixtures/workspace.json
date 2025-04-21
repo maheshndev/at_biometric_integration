@@ -1,7 +1,7 @@
 [
  {
   "charts": [],
-  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"Biometric Workspace\"}}]",
+  "content": "[{\"id\":\"title-block\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Biometric Workspace</span>\",\"col\":12}},{\"id\":\"daily-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Daily Attendance Report\",\"col\":3}},{\"id\":\"weekly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Weekly Attendance Report\",\"col\":3}},{\"id\":\"monthly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Attendance Report\",\"col\":3}}]",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
@@ -12,8 +12,8 @@
   "is_hidden": 0,
   "label": "Biometric Workspace",
   "links": [],
-  "modified": "2025-04-21 11:33:28.774085",
-  "module": null,
+  "modified": "2025-04-21 00:00:00",
+  "module": "At Biometric Integration",
   "name": "Biometric Workspace",
   "number_cards": [],
   "parent_page": "HR",
@@ -22,7 +22,59 @@
   "restrict_to_domain": null,
   "roles": [],
   "sequence_id": 39.0,
-  "shortcuts": [],
+  "shortcuts": [
+   {
+    "color": "Blue",
+    "doc_view": "Report",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Daily Attendance Report",
+    "link_to": null,
+    "parent": "Biometric Workspace",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": null,
+    "type": "URL",
+    "url": "/app/query-report/Attendance%20Report%20Summary?period=Daily"
+   },
+   {
+    "color": "Green",
+    "doc_view": "Report",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Weekly Attendance Report",
+    "link_to": null,
+    "parent": "Biometric Workspace",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": null,
+    "type": "URL",
+    "url": "/app/query-report/Attendance%20Report%20Summary?period=Weekly"
+   },
+   {
+    "color": "Purple",
+    "doc_view": "Report",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Monthly Attendance Report",
+    "link_to": null,
+    "parent": "Biometric Workspace",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": null,
+    "type": "URL",
+    "url": "/app/query-report/Attendance%20Report%20Summary?period=Monthly&months=January"
+   }
+  ],
   "title": "Biometric Workspace"
  }
 ]
