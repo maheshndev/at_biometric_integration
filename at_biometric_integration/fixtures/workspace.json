@@ -1,0 +1,28 @@
+[
+ {
+  "charts": [],
+  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"Biometric Workspace\"}}]",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "menu",
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "Biometric Workspace",
+  "links": [],
+  "modified": "2025-04-21 11:33:28.774085",
+  "module": null,
+  "name": "Biometric Workspace",
+  "number_cards": [],
+  "parent_page": "HR",
+  "public": 1,
+  "quick_lists": [],
+  "restrict_to_domain": null,
+  "roles": [],
+  "sequence_id": 39.0,
+  "shortcuts": [],
+  "title": "Biometric Workspace"
+ }
+]
