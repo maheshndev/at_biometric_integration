@@ -5,16 +5,18 @@ from datetime import datetime, timedelta
 def execute(filters=None):
     filters = frappe._dict(filters or {})
     columns = [
-        {"label": "Employee Name", "fieldname": "employee_name", "fieldtype": "Data", "width": 160},
-        {"label": "Employee", "fieldname": "employee", "fieldtype": "Link", "options": "Employee", "width": 120},
-        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
+        {"label": "Employee", "fieldname": "employee", "fieldtype": "Link", "options": "Employee", "width": 160},
+        {"label": "Shift", "fieldname": "shift", "fieldtype": "Link", "options": "Shift Type", "width": 120},
         {"label": "Date", "fieldname": "date", "fieldtype": "Date", "width": 100},
-        {"label": "Shift", "fieldname": "shift", "fieldtype": "Data", "width": 100},
-        {"label": "Working Hours", "fieldname": "working_hours", "fieldtype": "Float", "width": 120},
-        {"label": "Leave Type", "fieldname": "leave_type", "fieldtype": "Link", "options": "Leave Type", "width": 120},
-        {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
         {"label": "In Time", "fieldname": "in_time", "fieldtype": "Time", "width": 100},
         {"label": "Out Time", "fieldname": "out_time", "fieldtype": "Time", "width": 100},
+        {"label": "Working Hours", "fieldname": "working_hours", "fieldtype": "Float", "width": 100},
+        {"label": "Early Entry", "fieldname": "early_entry", "fieldtype": "Data", "width": 100},
+        {"label": "Early Going", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
+        {"label": "Late Entry", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
+        {"label": "Late Going", "fieldname": "late_going", "fieldtype": "Data", "width": 100},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
+        {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
         {"label": "Department", "fieldname": "department", "fieldtype": "Link", "options": "Department", "width": 120},
     ]
 
@@ -60,8 +62,6 @@ def execute(filters=None):
         conditions.append(f"attendance.company = '{filters.company}'")
     if filters.get("department"):
         conditions.append(f"emp.department = '{filters.department}'")
-    if filters.get("employee_name"):
-        conditions.append(f"emp.employee_name LIKE '%{filters.employee_name}%'")
 
     condition_str = "WHERE " + " AND ".join(conditions) if conditions else ""
 
@@ -77,12 +77,69 @@ def execute(filters=None):
             attendance.company,
             TIME(attendance.in_time) AS in_time,
             TIME(attendance.out_time) AS out_time,
-            emp.department
+            emp.department,
+            st.start_time AS shift_start,
+            st.end_time AS shift_end
         FROM `tabAttendance` attendance
         LEFT JOIN `tabEmployee` emp ON emp.name = attendance.employee
+        LEFT JOIN `tabShift Type` st ON st.name = attendance.shift
         {condition_str}
         ORDER BY attendance.attendance_date DESC
     """, as_dict=True)
 
-    return columns, data
+    for row in data:
+        # Format working_hours as H:MM
+        if row.working_hours:
+            hours = int(row.working_hours)
+            minutes = int((row.working_hours - hours) * 60)
+            row["working_hours"] = f"{hours}:{minutes:02d}"
 
+        # Early Entry
+        if row.get("shift_start") and row.get("in_time"):
+            shift_start = datetime.strptime(str(row.shift_start), "%H:%M:%S").time()
+            in_time = datetime.strptime(str(row.in_time), "%H:%M:%S").time()
+            if in_time < shift_start:
+                early_minutes = (datetime.combine(datetime.today(), shift_start) - datetime.combine(datetime.today(), in_time)).seconds // 60
+                row["early_entry"] = f"{early_minutes // 60}:{early_minutes % 60:02d}"
+            else:
+                row["early_entry"] = "-"
+        else:
+            row["early_entry"] = "-"
+
+        # Early Going
+        if row.get("shift_end") and row.get("out_time"):
+            shift_end = datetime.strptime(str(row.shift_end), "%H:%M:%S").time()
+            out_time = datetime.strptime(str(row.out_time), "%H:%M:%S").time()
+            if out_time < shift_end:
+                early_minutes = (datetime.combine(datetime.today(), shift_end) - datetime.combine(datetime.today(), out_time)).seconds // 60
+                row["early_going"] = f"{early_minutes // 60}:{early_minutes % 60:02d}"
+            else:
+                row["early_going"] = "-"
+        else:
+            row["early_going"] = "-"
+
+        # Late Entry
+        if row.get("shift_start") and row.get("in_time"):
+            shift_start = datetime.strptime(str(row.shift_start), "%H:%M:%S").time()
+            in_time = datetime.strptime(str(row.in_time), "%H:%M:%S").time()
+            if in_time > shift_start:
+                late_minutes = (datetime.combine(datetime.today(), in_time) - datetime.combine(datetime.today(), shift_start)).seconds // 60
+                row["late_entry"] = f"{late_minutes // 60}:{late_minutes % 60:02d}"
+            else:
+                row["late_entry"] = "-"
+        else:
+            row["late_entry"] = "-"
+
+        # Late Going
+        if row.get("shift_end") and row.get("out_time"):
+            shift_end = datetime.strptime(str(row.shift_end), "%H:%M:%S").time()
+            out_time = datetime.strptime(str(row.out_time), "%H:%M:%S").time()
+            if out_time > shift_end:
+                late_minutes = (datetime.combine(datetime.today(), out_time) - datetime.combine(datetime.today(), shift_end)).seconds // 60
+                row["late_going"] = f"{late_minutes // 60}:{late_minutes % 60:02d}"
+            else:
+                row["late_going"] = "-"
+        else:
+            row["late_going"] = "-"
+
+    return columns, data
