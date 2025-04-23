@@ -319,7 +319,7 @@ def mark_absent_or_leave(employee, date, shift):
             "leave_type": leave_type if leave_status in ["On Leave", "Half Day"] else ""
         })
         attendance.insert(ignore_permissions=True)
-        frappe.db.commit()
+        frappe.db.commit() 
 
 def mark_leave(employee, date, shift, status, leave_type):
     if not frappe.db.exists("Attendance", {"employee": employee, "attendance_date": date}):
