@@ -279,11 +279,12 @@ fixtures = [
     { 
      "doctype": "Workspace",
      "filters": [["name", "=", "Biometric Workspace"]]
-    },
-    {
-        "doctype": "Report",
-        "filters": [["name", "in", ["Attendance Report Summary", "Monthly Attendance Summary"]]]
     }
+    # ,
+    # {
+    #     "doctype": "Report",
+    #     "filters": [["name", "in", ["Attendance Report Summary", "Monthly Attendance Summary"]]]
+    # }
 
 ]
 
