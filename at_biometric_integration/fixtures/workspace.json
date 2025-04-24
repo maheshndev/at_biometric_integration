@@ -72,7 +72,7 @@
     "restrict_to_domain": null,
     "stats_filter": null,
     "type": "URL",
-    "url": "/app/query-report/Attendance%20Report%20Summary?period=Monthly&months=January"
+    "url": "/app/query-report/Monthly%20Attendance%20Summary"
    }
   ],
   "title": "Biometric Workspace"

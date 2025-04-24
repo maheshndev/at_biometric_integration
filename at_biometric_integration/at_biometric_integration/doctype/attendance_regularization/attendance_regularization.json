@@ -30,7 +30,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Pending\nApproved\nRejected"
+   "options": "Draft\nPending\nApproved\nRejected"
   },
   {
    "fieldname": "column_break_mcfx",

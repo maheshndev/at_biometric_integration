@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import getdate, nowdate
+from frappe.utils import getdate, nowdate, add_days
 from datetime import datetime, timedelta
 
 def execute(filters=None):
@@ -23,7 +23,7 @@ def execute(filters=None):
     period = filters.get("period")
     today = getdate(nowdate())
 
-    # Handle monthly period based on selected month
+    # Handle different period types
     if period == "Monthly" and filters.get("months"):
         month_str = filters.months
         month_map = {
@@ -32,25 +32,26 @@ def execute(filters=None):
             "September": 9, "October": 10, "November": 11, "December": 12
         }
         month = month_map.get(month_str, today.month)
-        year = today.year
+        year = int(filters.get("year", today.year))  # Get year from filters or current year
         filters.from_date = datetime(year, month, 1).date()
         # Next month minus one day
         if month == 12:
             filters.to_date = datetime(year + 1, 1, 1).date() - timedelta(days=1)
         else:
             filters.to_date = datetime(year, month + 1, 1).date() - timedelta(days=1)
+
+    elif period == "Weekly":
+        start_of_week = today - timedelta(days=today.weekday())  # Get start of the current week
+        filters.from_date = start_of_week
+        filters.to_date = start_of_week + timedelta(days=6)  # End of the week
+
+    elif period == "Daily":
+        filters.from_date = today
+        filters.to_date = today
+
     else:
         filters.from_date = getdate(filters.get("from_date") or today)
-
-        if not filters.get("to_date"):
-            if period == "Weekly":
-                filters.to_date = filters.from_date + timedelta(days=6)
-            elif period == "Monthly":
-                filters.to_date = filters.from_date + timedelta(days=29)
-            else:  # Daily
-                filters.to_date = filters.from_date
-        else:
-            filters.to_date = getdate(filters.to_date)
+        filters.to_date = getdate(filters.get("to_date") or today)
 
     conditions = [f"attendance.attendance_date BETWEEN '{filters.from_date}' AND '{filters.to_date}'"]
 
@@ -88,13 +89,13 @@ def execute(filters=None):
     """, as_dict=True)
 
     for row in data:
-        # Format working_hours as H:MM
+        # Calculate working_hours as H:MM format
         if row.working_hours:
             hours = int(row.working_hours)
             minutes = int((row.working_hours - hours) * 60)
             row["working_hours"] = f"{hours}:{minutes:02d}"
 
-        # Early Entry
+        # Early Entry calculation
         if row.get("shift_start") and row.get("in_time"):
             shift_start = datetime.strptime(str(row.shift_start), "%H:%M:%S").time()
             in_time = datetime.strptime(str(row.in_time), "%H:%M:%S").time()
@@ -106,7 +107,7 @@ def execute(filters=None):
         else:
             row["early_entry"] = "-"
 
-        # Early Going
+        # Early Going calculation
         if row.get("shift_end") and row.get("out_time"):
             shift_end = datetime.strptime(str(row.shift_end), "%H:%M:%S").time()
             out_time = datetime.strptime(str(row.out_time), "%H:%M:%S").time()
@@ -118,7 +119,7 @@ def execute(filters=None):
         else:
             row["early_going"] = "-"
 
-        # Late Entry
+        # Late Entry calculation
         if row.get("shift_start") and row.get("in_time"):
             shift_start = datetime.strptime(str(row.shift_start), "%H:%M:%S").time()
             in_time = datetime.strptime(str(row.in_time), "%H:%M:%S").time()
@@ -130,7 +131,7 @@ def execute(filters=None):
         else:
             row["late_entry"] = "-"
 
-        # Late Going
+        # Late Going calculation
         if row.get("shift_end") and row.get("out_time"):
             shift_end = datetime.strptime(str(row.shift_end), "%H:%M:%S").time()
             out_time = datetime.strptime(str(row.out_time), "%H:%M:%S").time()
