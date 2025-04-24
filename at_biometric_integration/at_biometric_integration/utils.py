@@ -19,6 +19,8 @@ PUNCH_MAPPING = {
 ATTENDANCE_DIR = "attendance_logs"
 
 def get_attendance_file_path(ip):
+    # Ensure the attendance directory exists
+    os.makedirs(ATTENDANCE_DIR, exist_ok=True)
     date_str = getdate(nowdate()).strftime("%Y-%m-%d")
     return os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
 
