@@ -276,11 +276,12 @@ fixtures = [
         "doctype": "Workflow",
         "filters": [["workflow_name", "=", "Attendance Regularization Approval"]]
     },
-    {
-        "doctype": "Report",
-        "filters": [
-            ["name", "in", ["Employee Working Hours Report"]]
-        ]
-    }
+    { 
+     "doctype": "Workspace",
+     "filters": [["name", "=", "Biometric Workspace"]]
+    },
+    
+    {"dt": "Report", "filters": [["name", "=", "Attendance Report Summary"]]}
+
 ]
 
