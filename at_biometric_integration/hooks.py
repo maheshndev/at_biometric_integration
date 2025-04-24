@@ -255,7 +255,7 @@ scheduler_events = {
         "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
         # "propms.auto_custom.statusChangeAfterLeaseExpire",
     ],
-    "cron": {"38 11 * * *": ["at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"]},
+    "cron": {"*/20 * * * *": ["at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"]},
 }
 # scheduler_events = {
 #     "cron": {
