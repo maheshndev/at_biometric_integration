@@ -33,8 +33,6 @@ def load_attendance_data(ip):
     return []
 
 def save_attendance_data(ip, attendance):
-    if not os.path.exists(ATTENDANCE_DIR):
-        os.makedirs(ATTENDANCE_DIR)
     file_path = get_attendance_file_path(ip)
     with open(file_path, "w") as f:
         json.dump(attendance, f, indent=4)
@@ -129,6 +127,7 @@ def fetch_and_upload_attendance():
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
     os.makedirs(ATTENDANCE_DIR)
+
     for device in devices:
         ip = device["device_ip"]
         port = device.get("device_port", 4370)
