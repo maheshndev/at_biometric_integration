@@ -127,7 +127,7 @@ def fetch_and_upload_attendance():
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
     os.makedirs(ATTENDANCE_DIR)
-    
+
     for device in devices:
         ip = device["device_ip"]
         port = device.get("device_port", 4370)
