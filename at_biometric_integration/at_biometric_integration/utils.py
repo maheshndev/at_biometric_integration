@@ -17,10 +17,11 @@ PUNCH_MAPPING = {
 
 # JSON File Management
 ATTENDANCE_DIR = "attendance_logs"
+os.makedirs(ATTENDANCE_DIR)
 
 def get_attendance_file_path(ip):
     # Ensure the attendance directory exists
-    os.makedirs(ATTENDANCE_DIR, exist_ok=True)
+    os.makedirs(ATTENDANCE_DIR)
     date_str = getdate(nowdate()).strftime("%Y-%m-%d")
     return os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
 
@@ -127,7 +128,7 @@ def cleanup_old_attendance_logs():
 def fetch_and_upload_attendance():
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
-
+    os.makedirs(ATTENDANCE_DIR)
     for device in devices:
         ip = device["device_ip"]
         port = device.get("device_port", 4370)
