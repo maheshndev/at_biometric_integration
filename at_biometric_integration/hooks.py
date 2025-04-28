@@ -6,7 +6,7 @@ app_email = "info@assimilatetechnologies.com"
 app_license = "mit"
 
 # Apps
-# ------------------
+# -----------------------
 
 # required_apps = []
 
@@ -280,11 +280,7 @@ fixtures = [
      "doctype": "Workspace",
      "filters": [["name", "=", "Biometric Workspace"]]
     }
-    # ,
-    # {
-    #     "doctype": "Report",
-    #     "filters": [["name", "in", ["Attendance Report Summary", "Monthly Attendance Summary"]]]
-    # }
+    
 
 ]
 

@@ -5,6 +5,7 @@ from frappe.utils import getdate, nowdate, cint, add_days, today, get_datetime, 
 from zk import ZK
 from datetime import datetime, timedelta
 
+
 # Punch Mapping
 PUNCH_MAPPING = {
     0: "Check-In",
@@ -16,14 +17,17 @@ PUNCH_MAPPING = {
 }
 
 # JSON File Management
-ATTENDANCE_DIR = "attendance_logs"
-os.makedirs(ATTENDANCE_DIR)
+ATTENDANCE_NAME = "attendance_logs"
+ATTENDANCE_DIR = frappe.get_site_path("public", "files", ATTENDANCE_NAME)
 
 def get_attendance_file_path(ip):
     # Ensure the attendance directory exists
-    os.makedirs(ATTENDANCE_DIR)
-    date_str = getdate(nowdate()).strftime("%Y-%m-%d")
-    return os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
+    os.makedirs(ATTENDANCE_DIR, exist_ok=True)
+    if os.path.exists(ATTENDANCE_DIR):
+        date_str = getdate(nowdate()).strftime("%Y-%m-%d")
+        filepath = os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
+        
+    return filepath
 
 def load_attendance_data(ip):
     file_path = get_attendance_file_path(ip)
@@ -126,7 +130,7 @@ def cleanup_old_attendance_logs():
 def fetch_and_upload_attendance():
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
-    os.makedirs(ATTENDANCE_DIR)
+   
 
     for device in devices:
         ip = device["device_ip"]
