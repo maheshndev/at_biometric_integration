@@ -2,10 +2,9 @@ import frappe
 
 def process_regularization(doc):
     """
-    Process the approved Attendance Regularization request
-    and update Employee Check-in records.
+    Create missing Employee Checkin entries for approved regularization.
     """
-    if not doc.employee or not doc.date or not doc.in_time or not doc.out_time:
+    if not (doc.employee and doc.date and doc.in_time and doc.out_time):
         frappe.throw("Employee, Date, In Time, and Out Time are required.")
 
     checkin_data = [
@@ -14,17 +13,16 @@ def process_regularization(doc):
     ]
 
     for checkin in checkin_data:
-        if not frappe.db.exists("Employee Checkin", {
-            "employee": checkin["employee"], 
-            "log_date": checkin["log_date"], 
+        exists = frappe.db.exists("Employee Checkin", {
+            "employee": checkin["employee"],
+            "log_date": checkin["log_date"],
             "log_type": checkin["log_type"]
-        }):
-            doc = frappe.get_doc({
+        })
+
+        if not exists:
+            frappe.get_doc({
                 "doctype": "Employee Checkin",
-                "employee": checkin["employee"],
-                "log_date": checkin["log_date"],
-                "log_type": checkin["log_type"],
-                "time": checkin["time"]
-            })
-            doc.insert()
-            frappe.db.commit()
+                **checkin
+            }).insert(ignore_permissions=True)
+
+    frappe.db.commit()

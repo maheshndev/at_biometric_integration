@@ -17,7 +17,7 @@ frappe.query_reports["Attendance Report Summary"] = {
             "fieldname": "months",
             "label": "Month",
             "fieldtype": "Select",
-            "options": "January\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+            "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
         },
         {
             "fieldname": "year",
@@ -38,7 +38,7 @@ frappe.query_reports["Attendance Report Summary"] = {
             "fieldname": "status",
             "label": "Status",
             "fieldtype": "Select",
-            "options": "Present\nAbsent\nHalf Day\nOn Leave\nWork From Home\n"
+            "options": "\nPresent\nAbsent\nHalf Day\nOn Leave\nWork From Home"
           },
           {
             "fieldname": "employee",
@@ -86,27 +86,6 @@ function updateVisibility() {
     }
 }
 
-// Updates the year options based on current year and period
-// function updateYearOptions() {
-//     let yearField = frappe.query_report.get_filter("year");
-//     let period = frappe.query_report.get_filter_value("period");
-//     let currentYear = new Date().getFullYear();
-//     let years = [];
-
-//     if (period === "Monthly") {
-//         for (let i = currentYear - 5; i <= currentYear; i++) {
-//             years.push(i.toString());
-//         }
-//     } else {
-//         for (let i = currentYear - 1; i <= currentYear + 1; i++) {
-//             years.push(i.toString());
-//         }
-//     }
-
-//     yearField.df.options = years.join('\n');
-//     yearField.set_input(currentYear.toString());
-//     yearField.refresh();
-// }
 
 function updateYearOptions() {
     let yearField = frappe.query_report.get_filter("year");

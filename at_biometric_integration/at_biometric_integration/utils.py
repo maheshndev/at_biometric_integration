@@ -15,7 +15,10 @@ PUNCH_MAPPING = {
     4: "Overtime Start",
     5: "Overtime End"
 }
-
+PUNCH_STATUS = {
+    1: "Check-In",
+    4: "Check-Out",
+}
 # JSON File Management
 ATTENDANCE_NAME = "attendance_logs"
 ATTENDANCE_DIR = frappe.get_site_path("public", "files", ATTENDANCE_NAME)
@@ -77,22 +80,6 @@ def process_attendance_logs(ip, logs):
 
     return new_records
 
-# Helper: Check if the date is a holiday or employee is on leave
-def is_holiday_or_leave(employee, date):
-    # Check holiday
-    holiday = frappe.db.exists("Holiday", {"holiday_date": date})
-    if holiday:
-        return True
-
-    # Check leave
-    leave = frappe.db.exists("Leave Application", {
-        "employee": employee,
-        "from_date": ["<=", date],
-        "to_date": [">=", date],
-        "status": "Approved"
-    })
-    return bool(leave)
-
 # Create Check-in/Check-out Records in Frappe
 def create_frappe_attendance(ip):
     attendance_data = load_attendance_data(ip)
@@ -120,10 +107,12 @@ def create_frappe_attendance(ip):
 
 # Cleanup Old Attendance Files
 def cleanup_old_attendance_logs():
-    cutoff_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    today_str = datetime.now().strftime("%Y-%m-%d")
     for filename in os.listdir(ATTENDANCE_DIR):
-        if cutoff_date in filename:
-            os.remove(os.path.join(ATTENDANCE_DIR, filename))
+        if filename.endswith(".json") and today_str not in filename:
+            file_path = os.path.join(ATTENDANCE_DIR, filename)
+            os.remove(file_path)
+            print(f"Removed: {file_path}")
 
 # Main Function
 @frappe.whitelist()
@@ -187,9 +176,8 @@ def process_employee_attendance(employee, shift):
     )
 
     today_date = get_datetime(today()).date()
-
     if not checkins:
-        check_missing_days(employee, shift, [], today_date)
+        check_missing_days(employee, shift, today_date)
         return
 
     dates_with_checkins = sorted(set(get_datetime(ci["time"]).date() for ci in checkins))
@@ -199,146 +187,132 @@ def process_employee_attendance(employee, shift):
     for date in date_range:
         daily_checkins = [ci for ci in checkins if get_datetime(ci["time"]).date() == date]
         if daily_checkins:
-            # Handle check-in processing
-            attendance_name = frappe.db.get_value("Attendance", {
-                "employee": employee,
-                "attendance_date": date
-            }, "name")
+            existing = frappe.db.exists("Attendance", {"employee": employee, "attendance_date": date})
+            attendance = frappe.get_doc("Attendance", {"employee": employee, "attendance_date": date}) if existing else None
+            first_checkin = daily_checkins[0]
+            last_checkout = daily_checkins[-1]
 
-            if attendance_name:
-                last_checkout = daily_checkins[-1]
-                current_out_time = frappe.db.get_value("Attendance", attendance_name, "out_time")
-
-                if not current_out_time or get_datetime(current_out_time) != get_datetime(last_checkout["time"]):
-                    first_checkin = daily_checkins[0]
-                    update_attendance(attendance_name, employee, date, shift, first_checkin, last_checkout)
-                continue
-
-            if is_holiday(employee, date):
-                handle_holiday_attendance(employee, date, shift, daily_checkins)
+            if attendance:
+                update_attendance(attendance.name, employee, date, shift, first_checkin, last_checkout)
             else:
-                handle_non_holiday_attendance(employee, date, shift, daily_checkins)
+                if is_holiday(employee, date):
+                    handle_holiday_attendance(employee, date, shift, daily_checkins)
+                else:
+                    handle_non_holiday_attendance(employee, date, shift, daily_checkins)
         else:
             mark_absent_if_no_checkin_leave_holiday(employee, date, shift)
 
-def check_missing_days(employee, shift, checkins, today_date):
-    # If no check-ins, assume last 7 days as the range
-    date_range = [add_days(today_date, -i) for i in range(7)]
-    for date in date_range:
+def check_missing_days(employee, shift, today_date):
+    for i in range(7):
+        date = add_days(today_date, -i)
         mark_absent_if_no_checkin_leave_holiday(employee, date, shift)
 
 def mark_absent_if_no_checkin_leave_holiday(employee, date, shift):
-    leave_status, leave_type = get_leave_status(employee, date)
+    leave_status, leave_type, leave_application = get_leave_status(employee, date)
     is_holiday_flag = is_holiday(employee, date)
     has_checkin = frappe.db.exists("Employee Checkin", {"employee": employee, "time": ["between", [f"{date} 00:00:00", f"{date} 23:59:59"]]})
     has_attendance = frappe.db.exists("Attendance", {"employee": employee, "attendance_date": date})
 
-    if not leave_status and not is_holiday_flag and not has_checkin and not has_attendance:
+    if not has_checkin and not is_holiday_flag and not has_attendance:
+        status = leave_status or "Absent"
         attendance = frappe.get_doc({
             "doctype": "Attendance",
             "employee": employee,
             "attendance_date": date,
             "shift": shift,
-            "status": "Absent"
+            "status": status,
+            "leave_type": leave_type,
+            "leave_application": leave_application,
+            "half_day_status": "Absent" if leave_status == "Half Day" else "",
         })
         attendance.insert(ignore_permissions=True)
         frappe.db.commit()
 
-def handle_holiday_attendance(employee, date, shift, checkins_on_date):
-    if checkins_on_date:
-        first_checkin = checkins_on_date[0]
-        last_checkout = checkins_on_date[-1]
-        working_hours = calculate_working_hours(first_checkin, last_checkout)
-        status = "Present" if working_hours >= 4 else "Half Day"
-        create_attendance(employee, date, shift, first_checkin, last_checkout, status)
+def handle_holiday_attendance(employee, date, shift, checkins):
+    first = checkins[0]
+    last = checkins[-1]
+    hours = calculate_working_hours(first, last)
+    status = "Half Day" if hours < 4 else "Present"
+    create_attendance(employee, date, shift, first, last, status)
 
-def handle_non_holiday_attendance(employee, date, shift, checkins_on_date):
-    leave_status, leave_type = get_leave_status(employee, date)
+def handle_non_holiday_attendance(employee, date, shift, checkins):
+    leave_status, leave_type, leave_application = get_leave_status(employee, date)
+    first = checkins[0] if checkins else None
+    last = checkins[-1] if checkins else None
+    hours = calculate_working_hours(first, last)
 
-    if leave_status == "On Leave" or (leave_status == "Half Day" and not checkins_on_date):
-        mark_leave(employee, date, shift, leave_status, leave_type)
-    elif not checkins_on_date:
-        mark_absent_or_leave(employee, date, shift)
+    if not checkins:
+        status = leave_status or "Absent"
     else:
-        first_checkin = checkins_on_date[0]
-        last_checkout = checkins_on_date[-1]
-        working_hours = calculate_working_hours(first_checkin, last_checkout)
-        status = "Half Day" if working_hours < 4 else "Present"
-        create_attendance(employee, date, shift, first_checkin, last_checkout, status)
+        if leave_status == "On Leave":
+            status = "On Leave"
+        elif leave_status == "Half Day" or hours < 4:
+            status = "Half Day"
+        else:
+            status = "Present"
 
-def create_attendance(employee, date, shift, first_checkin, last_checkout, status):
-    working_hours = calculate_working_hours(first_checkin, last_checkout)
-    leave_status, leave_type = get_leave_status(employee, date)
+    create_attendance(
+        employee, date, shift, first, last, status,
+        working_hours=hours, leave_type=leave_type,
+        leave_application=leave_application,
+        half_day_status="Absent" if leave_status == "Half Day" else ""
+    )
 
+def create_attendance(employee, date, shift, first, last, status, working_hours=0, leave_type=None, leave_application=None, half_day_status=""):
+    if not first or not last:
+        return
+
+    emp_doc = frappe.get_doc("Employee", employee)
+    attendance = frappe.get_doc({
+        "doctype": "Attendance",
+        "employee": employee,
+        "employee_name": emp_doc.employee_name,
+        "attendance_date": date,
+        "company": emp_doc.company,
+        "department": emp_doc.department,
+        "shift": shift,
+        "status": status,
+        "leave_type": leave_type,
+        "leave_application": leave_application,
+        "working_hours": working_hours,
+        "in_time": first["time"],
+        "out_time": last["time"],
+        "half_day_status": half_day_status,
+        "late_entry": False,
+        "early_exit": False
+    })
+
+    attendance.insert(ignore_permissions=True)
+    frappe.db.set_value("Employee Checkin", first["name"], {"attendance": attendance.name, "log_type": "IN"})
+    if first["name"] != last["name"]:
+        frappe.db.set_value("Employee Checkin", last["name"], {"attendance": attendance.name, "log_type": "OUT"})
+    frappe.db.commit()
+
+def update_attendance(attendance_name, employee, date, shift, first, last):
+    working_hours = calculate_working_hours(first, last)
+    leave_status, leave_type, leave_application = get_leave_status(employee, date)
+
+    status = "Present" if working_hours >= 4 else "Half Day"
     if leave_status == "On Leave":
         status = "On Leave"
     elif leave_status == "Half Day" or working_hours < 4:
         status = "Half Day"
 
-    attendance = frappe.get_doc({
-        "doctype": "Attendance",
-        "employee": employee,
-        "attendance_date": date,
-        "shift": shift,
-        "status": status,
-        "checkin": first_checkin["name"],
-        "leave_type": leave_type if leave_status in ["On Leave", "Half Day"] else "",
-        "working_hours": working_hours,
-        "in_time": first_checkin["time"],
-        "out_time": last_checkout["time"]
-    })
-    attendance.insert(ignore_permissions=True)
-
-    frappe.db.set_value("Employee Checkin", first_checkin["name"], "attendance", attendance.name)
-    if first_checkin["name"] != last_checkout["name"]:
-        frappe.db.set_value("Employee Checkin", last_checkout["name"], "attendance", attendance.name)
-
-    frappe.db.commit()
-    return attendance.name
-
-def update_attendance(attendance_name, employee, date, shift, first_checkin, last_checkout):
-    working_hours = calculate_working_hours(first_checkin, last_checkout)
-
     frappe.db.set_value("Attendance", attendance_name, {
-        "out_time": last_checkout["time"],
-        "working_hours": working_hours
+        "in_time": first["time"],
+        "out_time": last["time"],
+        "working_hours": working_hours,
+        "status": status,
+        "leave_type": leave_type,
+        "leave_application": leave_application,
+        "half_day_status": "Absent" if status == "Half Day" else "",
     })
 
-    frappe.db.set_value("Employee Checkin", first_checkin["name"], "attendance", attendance_name)
-    if last_checkout and first_checkin["name"] != last_checkout["name"]:
-        frappe.db.set_value("Employee Checkin", last_checkout["name"], "attendance", attendance_name)
+    frappe.db.set_value("Employee Checkin", first["name"], {"attendance": attendance_name, "log_type": "IN"})
+    if first["name"] != last["name"]:
+        frappe.db.set_value("Employee Checkin", last["name"], {"attendance": attendance_name, "log_type": "OUT"})
 
     frappe.db.commit()
-    return attendance_name
-
-def mark_absent_or_leave(employee, date, shift):
-    leave_status, leave_type = get_leave_status(employee, date)
-    status = leave_status if leave_status else "Absent"
-
-    if not frappe.db.exists("Attendance", {"employee": employee, "attendance_date": date}):
-        attendance = frappe.get_doc({
-            "doctype": "Attendance",
-            "employee": employee,
-            "attendance_date": date,
-            "shift": shift,
-            "status": status,
-            "leave_type": leave_type if leave_status in ["On Leave", "Half Day"] else ""
-        })
-        attendance.insert(ignore_permissions=True)
-        frappe.db.commit() 
-
-def mark_leave(employee, date, shift, status, leave_type):
-    if not frappe.db.exists("Attendance", {"employee": employee, "attendance_date": date}):
-        attendance = frappe.get_doc({
-            "doctype": "Attendance",
-            "employee": employee,
-            "attendance_date": date,
-            "shift": shift,
-            "status": status,
-            "leave_type": leave_type
-        })
-        attendance.insert(ignore_permissions=True)
-        frappe.db.commit()
 
 def get_leave_status(employee, date):
     leave = frappe.get_all("Leave Application", {
@@ -346,29 +320,23 @@ def get_leave_status(employee, date):
         "from_date": ["<=", date],
         "to_date": [">=", date],
         "status": "Approved"
-    }, ["leave_type", "half_day"])
+    }, ["name", "leave_type", "half_day"])
 
     if leave:
-        return ("Half Day", leave[0]["leave_type"]) if leave[0]["half_day"] else ("On Leave", leave[0]["leave_type"])
-    return (None, "")
+        is_half_day = leave[0]["half_day"]
+        return ("Half Day" if is_half_day else "On Leave", leave[0]["leave_type"], leave[0]["name"])
+    return (None, None, None)
 
 def is_holiday(employee, date):
     holiday_list = frappe.get_value("Employee", employee, "holiday_list")
     return frappe.db.exists("Holiday", {"parent": holiday_list, "holiday_date": date}) if holiday_list else False
 
-def calculate_working_hours(first_checkin, last_checkout):
-    if not first_checkin or not last_checkout:
+def calculate_working_hours(first, last):
+    if not first or not last:
         return 0
-    return time_diff_in_hours(get_datetime(last_checkout["time"]), get_datetime(first_checkin["time"]))
+    return time_diff_in_hours(get_datetime(last["time"]), get_datetime(first["time"]))
 
-def mark_today_attendance():
-    employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "default_shift"])
-    for emp in employees:
-        shift_end_time = frappe.get_value("Shift Type", emp["default_shift"], "end_time")
-        if shift_end_time and get_datetime().time() >= datetime.datetime.strptime(shift_end_time, "%H:%M:%S").time():
-            process_employee_attendance(emp["name"], emp["default_shift"])
-
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def mark_attendance():
     process_attendance()
-    return {"message": "Attendance processed successfully"}
+    return {"message": "Attendance marked successfully"}
