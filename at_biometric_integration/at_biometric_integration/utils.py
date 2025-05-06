@@ -6,7 +6,6 @@ from zk import ZK
 from datetime import datetime, timedelta
 
 
-# Punch Mapping
 PUNCH_MAPPING = {
     0: "Check-In",
     1: "Check-Out",
@@ -15,22 +14,19 @@ PUNCH_MAPPING = {
     4: "Overtime Start",
     5: "Overtime End"
 }
+
 PUNCH_STATUS = {
     1: "Check-In",
     4: "Check-Out",
 }
-# JSON File Management
+
 ATTENDANCE_NAME = "attendance_logs"
 ATTENDANCE_DIR = frappe.get_site_path("public", "files", ATTENDANCE_NAME)
 
 def get_attendance_file_path(ip):
-    # Ensure the attendance directory exists
     os.makedirs(ATTENDANCE_DIR, exist_ok=True)
-    if os.path.exists(ATTENDANCE_DIR):
-        date_str = getdate(nowdate()).strftime("%Y-%m-%d")
-        filepath = os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
-        
-    return filepath
+    date_str = getdate(nowdate()).strftime("%Y-%m-%d")
+    return os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
 
 def load_attendance_data(ip):
     file_path = get_attendance_file_path(ip)
@@ -44,7 +40,6 @@ def save_attendance_data(ip, attendance):
     with open(file_path, "w") as f:
         json.dump(attendance, f, indent=4)
 
-# Fetch Attendance from Biometric Device
 def fetch_attendance_from_device(ip, port):
     try:
         conn = ZK(ip, port=int(port), timeout=10, force_udp=False, ommit_ping=False).connect()
@@ -56,23 +51,23 @@ def fetch_attendance_from_device(ip, port):
         frappe.log_error(f"Error connecting to device {ip}: {str(e)}", "Biometric Device Connection Error")
     return []
 
-# Process Attendance Data
 def process_attendance_logs(ip, logs):
     existing_data = load_attendance_data(ip)
-    existing_records = {(entry['user_id'], entry['timestamp']) for entry in existing_data}
+    existing_keys = {(entry['user_id'], entry['timestamp']) for entry in existing_data}
     new_records = []
 
     for log in logs:
-        record = {
-            "uid": log.uid,
-            "user_id": log.user_id,
-            "timestamp": log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "status": log.status,
-            "punch": log.punch,
-            "punch_type": PUNCH_MAPPING.get(log.punch, "Unknown")
-        }
-        if (record["user_id"], record["timestamp"]) not in existing_records:
-            new_records.append(record)
+        timestamp_str = log.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        key = (log.user_id, timestamp_str)
+        if key not in existing_keys:
+            new_records.append({
+                "uid": log.uid,
+                "user_id": log.user_id,
+                "timestamp": timestamp_str,
+                "status": log.status,
+                "punch": log.punch,
+                "punch_type": PUNCH_MAPPING.get(log.punch, "Unknown")
+            })
 
     if new_records:
         existing_data.extend(new_records)
@@ -80,46 +75,65 @@ def process_attendance_logs(ip, logs):
 
     return new_records
 
-# Create Check-in/Check-out Records in Frappe
 def create_frappe_attendance(ip):
     attendance_data = load_attendance_data(ip)
+    if not attendance_data:
+        return
+
+    user_ids = list(set([record['user_id'] for record in attendance_data]))
+    employee_map = {
+        r.attendance_device_id: r.name
+        for r in frappe.get_all("Employee",
+            filters={"attendance_device_id": ["in", user_ids]},
+            fields=["name", "attendance_device_id"]
+        )
+    }
+
+    timestamps = [record['timestamp'] for record in attendance_data]
+    existing_checkins = {
+        (c.employee, c.time.strftime("%Y-%m-%d %H:%M:%S"))
+        for c in frappe.get_all("Employee Checkin",
+            filters={"time": ["in", timestamps]},
+            fields=["employee", "time"]
+        )
+    }
+
+    checkins_to_create = []
     for record in attendance_data:
+        employee = employee_map.get(record['user_id'])
+        if not employee:
+            continue
+        key = (employee, record['timestamp'])
+        if key in existing_checkins:
+            continue
+        log_type = "IN" if record['punch'] in [0, 4] else "OUT"
+        checkins_to_create.append({
+            "doctype": "Employee Checkin",
+            "employee": employee,
+            "time": record['timestamp'],
+            "log_type": log_type,
+            "device_id": record['user_id']
+        })
+
+    for doc in checkins_to_create:
         try:
-            employee = frappe.get_value("Employee", {"attendance_device_id": record['user_id']}, "name")
-            if employee:
-                attendance_date = record['timestamp'].split(" ")[0]
-
-                existing_checkin = frappe.get_all("Employee Checkin",
-                    filters={"employee": employee, "time": record['timestamp']},
-                    fields=["name"])
-                if not existing_checkin:
-                    checkin_doc = frappe.get_doc({
-                        "doctype": "Employee Checkin",
-                        "employee": employee,
-                        "time": record['timestamp'],
-                        "log_type": "IN" if record['punch'] in [0, 4] else "OUT",
-                        "device_id": record['user_id']
-                    })
-                    checkin_doc.insert()
-                    frappe.db.commit()
+            frappe.get_doc(doc).insert()
         except Exception as e:
-            frappe.log_error(f"Error processing attendance for user {record['user_id']}: {str(e)}", "Biometric Sync Error")
+            frappe.log_error(f"Failed to insert checkin: {doc} | {e}", "Checkin Insertion Error")
+    if checkins_to_create:
+        frappe.db.commit()
 
-# Cleanup Old Attendance Files
 def cleanup_old_attendance_logs():
     today_str = datetime.now().strftime("%Y-%m-%d")
     for filename in os.listdir(ATTENDANCE_DIR):
         if filename.endswith(".json") and today_str not in filename:
             file_path = os.path.join(ATTENDANCE_DIR, filename)
             os.remove(file_path)
-            print(f"Removed: {file_path}")
 
-# Main Function
 @frappe.whitelist()
 def fetch_and_upload_attendance():
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
-   
 
     for device in devices:
         ip = device["device_ip"]
@@ -128,37 +142,34 @@ def fetch_and_upload_attendance():
 
         try:
             if os.path.exists(file_path):
-                frappe.logger().info(f"[{ip}] JSON file exists. Creating check-ins from existing file.")
+                frappe.logger().info(f"[{ip}] JSON exists. Creating check-ins.")
                 create_frappe_attendance(ip)
 
                 logs = fetch_attendance_from_device(ip, port)
                 if logs:
                     new_records = process_attendance_logs(ip, logs)
                     if new_records:
-                        frappe.logger().info(f"[{ip}] New records found. Updating JSON and creating check-ins.")
+                        frappe.logger().info(f"[{ip}] New records added. Creating check-ins.")
                         create_frappe_attendance(ip)
-                        response["success"].append(f"Updated attendance and created check-ins for device {ip}")
-                    else:
-                        response["success"].append(f"No new logs for device {ip}")
+                    response["success"].append(f"Updated check-ins for {ip}")
                 else:
-                    response["errors"].append(f"Failed to fetch logs from device {ip}")
-
+                    response["errors"].append(f"No new logs fetched from {ip}")
             else:
-                frappe.logger().info(f"[{ip}] No JSON file. Fetching logs from device and creating new JSON.")
+                frappe.logger().info(f"[{ip}] No JSON. Fetching logs from device.")
                 logs = fetch_attendance_from_device(ip, port)
                 if logs:
                     process_attendance_logs(ip, logs)
                     create_frappe_attendance(ip)
-                    response["success"].append(f"Created attendance and check-ins for device {ip}")
+                    response["success"].append(f"Created check-ins from new device data {ip}")
                 else:
                     response["errors"].append(f"No logs fetched from device {ip}")
-
         except Exception as e:
-            frappe.log_error(f"Error processing device {ip}: {str(e)}", "Biometric Attendance Sync Error")
-            response["errors"].append(f"Error processing device {ip}")
+            frappe.log_error(f"Error processing device {ip}: {str(e)}", "Biometric Sync Error")
+            response["errors"].append(f"Error processing device {ip}: {str(e)}")
 
     cleanup_old_attendance_logs()
     return response
+
 
 ################################################################
 
