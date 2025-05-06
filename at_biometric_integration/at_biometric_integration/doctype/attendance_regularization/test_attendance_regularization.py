@@ -1,9 +1,6 @@
-# Copyright (c) 2025, Assimilate Technologies and Contributors
-# See license.txt
-
-# import frappe
 from frappe.tests.utils import FrappeTestCase
 
-
 class TestAttendanceRegularization(FrappeTestCase):
-	pass
+    def test_create_regularization(self):
+        # Extend this to check creation and validation
+        pass

@@ -1,60 +1,113 @@
+
 import frappe
-from frappe.utils import getdate, nowdate, add_days
+from frappe.utils import getdate, nowdate
 from datetime import datetime, timedelta
+
+def actual_working_duration(employee, date):
+    """Calculate actual working hours based on alternating IN/OUT checkins (odd as IN, even as OUT)."""
+    checkins = frappe.get_all("Employee Checkin",
+        filters={
+            "employee": employee,
+            "time": ["between", [f"{date} 00:00:00", f"{date} 23:59:59"]]
+        },
+        fields=["time"],
+        order_by="time"
+    )
+
+    total_duration = 0.0
+    times = [c.time for c in checkins]
+
+    for i in range(0, len(times) - 1, 2):
+        in_time = times[i]
+        out_time = times[i + 1]
+        if out_time > in_time:
+            total_duration += (out_time - in_time).total_seconds()
+
+    return round(total_duration / 3600, 2) if total_duration else 0.0
+
+
+
+
+def update_working_hours_from_checkins():
+    employees = frappe.get_all("Employee", fields=["name"])
+
+    for emp in employees:
+        checkins = frappe.get_all("Employee Checkin",
+            filters={"employee": emp.name},
+            fields=["time"],
+            order_by="time asc"
+        )
+
+        # Group checkins by date
+        checkins_by_date = {}
+        for checkin in checkins:
+            date_str = checkin.time.date().isoformat()
+            checkins_by_date.setdefault(date_str, []).append(checkin.time)
+
+        for date_str, times in checkins_by_date.items():
+            if len(times) < 2:
+                continue  # Need both in and out time to compute hours
+
+            in_time = times[0]
+            out_time = times[-1]
+            working_hours = round((out_time - in_time).total_seconds() / 3600, 2)
+
+            attendance = frappe.get_value("Attendance", {
+                "employee": emp.name,
+                "attendance_date": date_str
+            }, "name")
+
+            if attendance:
+                frappe.db.set_value("Attendance", attendance, "working_hours", working_hours)
+                frappe.db.commit()
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
+    # update_working_hours_from_checkins()
     columns = [
         {"label": "Employee", "fieldname": "employee", "fieldtype": "Link", "options": "Employee", "width": 160},
         {"label": "Shift", "fieldname": "shift", "fieldtype": "Link", "options": "Shift Type", "width": 120},
         {"label": "Date", "fieldname": "date", "fieldtype": "Date", "width": 100},
         {"label": "In Time", "fieldname": "in_time", "fieldtype": "Time", "width": 100},
         {"label": "Out Time", "fieldname": "out_time", "fieldtype": "Time", "width": 100},
-        {"label": "Working Hours", "fieldname": "working_hours", "fieldtype": "Float", "width": 100},
+        {"label": "Actual Work Duration", "fieldname": "working_hours", "fieldtype": "Float", "width": 100},
+        {"label": "Total Work Duration", "fieldname": "total_working_hours", "fieldtype": "Float", "width": 100},
         {"label": "Early Entry", "fieldname": "early_entry", "fieldtype": "Data", "width": 100},
-        {"label": "Early Going", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
-        {"label": "Late Entry", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
+        {"label": "LateBy", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
+        {"label": "EarlyGoingBy", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
         {"label": "Late Going", "fieldname": "late_going", "fieldtype": "Data", "width": 100},
+        {"label": "Over Time", "fieldname": "over_time", "fieldtype": "Data", "width": 100},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
         {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
         {"label": "Department", "fieldname": "department", "fieldtype": "Link", "options": "Department", "width": 120},
     ]
 
-    period = filters.get("period")
     today = getdate(nowdate())
 
-    # Handle different period types
+    # Determine date range
+    period = filters.get("period")
     if period == "Monthly" and filters.get("months"):
-        month_str = filters.months
         month_map = {
             "January": 1, "February": 2, "March": 3, "April": 4,
             "May": 5, "June": 6, "July": 7, "August": 8,
             "September": 9, "October": 10, "November": 11, "December": 12
         }
-        month = month_map.get(month_str, today.month)
-        year = int(filters.get("year", today.year))  # Get year from filters or current year
+        month = month_map.get(filters.months, today.month)
+        year = int(filters.get("year", today.year))
         filters.from_date = datetime(year, month, 1).date()
-        # Next month minus one day
-        if month == 12:
-            filters.to_date = datetime(year + 1, 1, 1).date() - timedelta(days=1)
-        else:
-            filters.to_date = datetime(year, month + 1, 1).date() - timedelta(days=1)
-
+        filters.to_date = (datetime(year + (month // 12), (month % 12) + 1, 1) - timedelta(days=1)).date()
     elif period == "Weekly":
-        start_of_week = today - timedelta(days=today.weekday())  # Get start of the current week
+        start_of_week = today - timedelta(days=today.weekday())
         filters.from_date = start_of_week
-        filters.to_date = start_of_week + timedelta(days=6)  # End of the week
-
+        filters.to_date = start_of_week + timedelta(days=6)
     elif period == "Daily":
-        filters.from_date = today
-        filters.to_date = today
-
+        filters.from_date = filters.to_date = today
     else:
         filters.from_date = getdate(filters.get("from_date") or today)
         filters.to_date = getdate(filters.get("to_date") or today)
 
+    # Build conditions
     conditions = [f"attendance.attendance_date BETWEEN '{filters.from_date}' AND '{filters.to_date}'"]
-
     if filters.get("status"):
         conditions.append(f"attendance.status = '{filters.status}'")
     if filters.get("employee"):
@@ -64,17 +117,18 @@ def execute(filters=None):
     if filters.get("department"):
         conditions.append(f"emp.department = '{filters.department}'")
 
-    condition_str = "WHERE " + " AND ".join(conditions) if conditions else ""
+    condition_str = "WHERE " + " AND ".join(conditions)
 
+    # Main data query
     data = frappe.db.sql(f"""
         SELECT
+            attendance.name AS attendance_id,
             attendance.employee,
             emp.employee_name,
             attendance.status,
             attendance.attendance_date AS date,
             attendance.shift,
-            attendance.working_hours,
-            attendance.leave_type,
+            attendance.working_hours AS total_working_hours,
             attendance.company,
             TIME(attendance.in_time) AS in_time,
             TIME(attendance.out_time) AS out_time,
@@ -89,58 +143,47 @@ def execute(filters=None):
     """, as_dict=True)
 
     for row in data:
-        # Calculate working_hours as H:MM format
-        if row.working_hours:
-            hours = int(row.working_hours)
-            minutes = int((row.working_hours - hours) * 60)
-            row["working_hours"] = f"{hours}:{minutes:02d}"
+        # Get actual working hours for the day from checkins
+        row["working_hours"] = actual_working_duration(row.employee, row.date)
 
-        # Early Entry calculation
-        if row.get("shift_start") and row.get("in_time"):
-            shift_start = datetime.strptime(str(row.shift_start), "%H:%M:%S").time()
-            in_time = datetime.strptime(str(row.in_time), "%H:%M:%S").time()
-            if in_time < shift_start:
-                early_minutes = (datetime.combine(datetime.today(), shift_start) - datetime.combine(datetime.today(), in_time)).seconds // 60
-                row["early_entry"] = f"{early_minutes // 60}:{early_minutes % 60:02d}"
-            else:
-                row["early_entry"] = "-"
-        else:
-            row["early_entry"] = "-"
+        # Compute shift duration
+        try:
+            shift_start = datetime.strptime(str(row.get("shift_start")), "%H:%M:%S")
+            shift_end = datetime.strptime(str(row.get("shift_end")), "%H:%M:%S")
 
-        # Early Going calculation
-        if row.get("shift_end") and row.get("out_time"):
-            shift_end = datetime.strptime(str(row.shift_end), "%H:%M:%S").time()
-            out_time = datetime.strptime(str(row.out_time), "%H:%M:%S").time()
-            if out_time < shift_end:
-                early_minutes = (datetime.combine(datetime.today(), shift_end) - datetime.combine(datetime.today(), out_time)).seconds // 60
-                row["early_going"] = f"{early_minutes // 60}:{early_minutes % 60:02d}"
-            else:
-                row["early_going"] = "-"
-        else:
-            row["early_going"] = "-"
+            # Handle overnight shifts
+            if shift_end < shift_start:
+                shift_end += timedelta(days=1)
 
-        # Late Entry calculation
-        if row.get("shift_start") and row.get("in_time"):
-            shift_start = datetime.strptime(str(row.shift_start), "%H:%M:%S").time()
-            in_time = datetime.strptime(str(row.in_time), "%H:%M:%S").time()
-            if in_time > shift_start:
-                late_minutes = (datetime.combine(datetime.today(), in_time) - datetime.combine(datetime.today(), shift_start)).seconds // 60
-                row["late_entry"] = f"{late_minutes // 60}:{late_minutes % 60:02d}"
-            else:
-                row["late_entry"] = "-"
-        else:
-            row["late_entry"] = "-"
+            shift_duration = (shift_end - shift_start).total_seconds() / 3600
+        except:
+            shift_duration = 0
 
-        # Late Going calculation
-        if row.get("shift_end") and row.get("out_time"):
-            shift_end = datetime.strptime(str(row.shift_end), "%H:%M:%S").time()
-            out_time = datetime.strptime(str(row.out_time), "%H:%M:%S").time()
-            if out_time > shift_end:
-                late_minutes = (datetime.combine(datetime.today(), out_time) - datetime.combine(datetime.today(), shift_end)).seconds // 60
-                row["late_going"] = f"{late_minutes // 60}:{late_minutes % 60:02d}"
-            else:
-                row["late_going"] = "-"
+        # Calculate Over Time
+        if row.get("total_working_hours") and shift_duration:
+            ot = row["total_working_hours"] - shift_duration
+            row["over_time"] = round(ot, 2) if ot > 0 else "-"
         else:
-            row["late_going"] = "-"
+            row["over_time"] = "-"
+
+        # Early/Late calculations
+        for metric, condition, time_field1, time_field2 in [
+            ("early_entry", lambda i, s: i < s, "in_time", "shift_start"),
+            ("early_going", lambda o, e: o < e, "out_time", "shift_end"),
+            ("late_entry", lambda i, s: i > s, "in_time", "shift_start"),
+            ("late_going", lambda o, e: o > e, "out_time", "shift_end"),
+        ]:
+            try:
+                t1 = datetime.strptime(str(row.get(time_field1)), "%H:%M:%S").time()
+                t2 = datetime.strptime(str(row.get(time_field2)), "%H:%M:%S").time()
+                if condition(t1, t2):
+                    delta = abs(datetime.combine(datetime.today(), t1) - datetime.combine(datetime.today(), t2))
+                    minutes = delta.seconds // 60
+                    row[metric] = f"{minutes // 60}:{minutes % 60:02d}"
+                else:
+                    row[metric] = "-"
+            except:
+                row[metric] = "-"
+
 
     return columns, data
