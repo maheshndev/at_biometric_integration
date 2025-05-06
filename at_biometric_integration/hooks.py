@@ -251,11 +251,12 @@ doctype_list_js = {
 # }
 
 scheduler_events = {
-    "daily": [
-        "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
-        # "propms.auto_custom.statusChangeAfterLeaseExpire",
+    "hourly": [
+        "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
     ],
-    "cron": {"*/20 * * * *": ["at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"]},
+    "daily": [
+        "at_biometric_integration.at_biometric_integration.utils.mark_attendance"
+    ]
 }
 # scheduler_events = {
 #     "cron": {
