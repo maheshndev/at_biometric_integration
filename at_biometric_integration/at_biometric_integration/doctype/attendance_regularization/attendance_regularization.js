@@ -1,53 +1,36 @@
 frappe.ui.form.on("Attendance Regularization", {
-    employee(frm) {
-        if (frm.doc.employee) {
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "Employee",
-                    filters: { name: frm.doc.employee },
-                    fieldname: ["employee_name"]
+    refresh: function(frm) {
+        frm.add_custom_button(__('Regularize Attendance'), function() {
+            frappe.prompt([
+                {
+                    label: 'Employee',
+                    fieldname: 'employee',
+                    fieldtype: 'Link',
+                    options: 'Employee',
+                    reqd: 1
                 },
-                callback(r) {
-                    frm.set_value("employee_name", r.message.employee_name);
+                {
+                    label: 'Date',
+                    fieldname: 'date',
+                    fieldtype: 'Date',
+                    reqd: 1
                 }
-            });
-        }
-    },
-    date(frm) {
-        if (frm.doc.date) {
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "Attendance",
-                    filters: {
-                        employee: frm.doc.employee,
-                        attendance_date: frm.doc.date
+            ], function(values) {
+                frappe.call({
+                    method: 'at_biometric_integration.at_biometric_integration.doctype.attendance_regularization.attendance_regularization.regularize_action',
+                    args: {
+                        employee: values.employee,
+                        date: values.date
                     },
-                    fieldname: ["attendance_status"]
-                },
-                callback(r) {
-                    if (r.message) {
-                        frm.set_value("attendance_status", r.message.attendance_status);
+                    callback: function(response) {
+                        if (response.message === "Attendance Regularized") {
+                            frappe.msgprint(__('Attendance has been regularized successfully.'));
+                        } else {
+                            frappe.msgprint(__('Failed to regularize attendance.'));
+                        }
                     }
-                }
-            });
-        }
-    },
-    in_time(frm) {
-        if (frm.doc.in_time && frm.doc.out_time) {
-            // Ensure that in-time is before out-time
-            if (frm.doc.in_time >= frm.doc.out_time) {
-                frappe.throw("In Time must be before Out Time.");
-            }
-        }
-    },
-    out_time(frm) {
-        if (frm.doc.in_time && frm.doc.out_time) {
-            // Ensure that out-time is after in-time
-            if (frm.doc.out_time <= frm.doc.in_time) {
-                frappe.throw("Out Time must be after In Time.");
-            }
-        }
+                });
+            }, __('Regularize Attendance'), __('Submit'));
+        });
     }
 });
