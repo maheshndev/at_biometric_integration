@@ -40,7 +40,7 @@
         "fieldname": "status",
         "label": "Status",
         "fieldtype": "Select",
-        "options": "Present\nAbsent\nHalf Day\nOn Leave\nWork From Home\n"
+        "options": "\nPresent\nAbsent\nHalf Day\nOn Leave\nWork From Home"
       },
       {
         "fieldname": "employee",
