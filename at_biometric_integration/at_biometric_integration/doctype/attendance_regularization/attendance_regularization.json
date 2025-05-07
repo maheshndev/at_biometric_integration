@@ -9,6 +9,8 @@
   "employee_name",
   "date",
   "status",
+  "attendance_status",
+  "attendance_type",
   "column_break_mcfx",
   "in_time",
   "out_time",
@@ -32,6 +34,12 @@
    "label": "Status",
    "options": "Draft\nPending\nApproved\nRejected"
   },
+  {
+    "fieldname": "attendance_status",
+    "fieldtype": "Select",
+    "label": "Attendance Status",
+    "options": "\nPresent\nAbsent\nHalf Day\nOn Leave\nWork From Home"
+   },
   {
    "fieldname": "column_break_mcfx",
    "fieldtype": "Column Break"
