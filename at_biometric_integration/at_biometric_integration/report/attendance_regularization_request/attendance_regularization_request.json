@@ -1,0 +1,32 @@
+{
+  "doctype": "Report",
+  "name": "Attendance Regularization Request",
+  "ref_doctype": "Attendance",
+  "module": "At Biometric Integration",
+  "report_type": "Script Report",
+  "is_standard": "Yes",
+  "filters": [
+    {
+      "fieldname": "period",
+      "label": "Period",
+      "fieldtype": "Select",
+      "options": "Daily\nWeekly\nMonthly",
+      "default": "Daily"
+    },
+    {
+      "fieldname": "month",
+      "label": "Month",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "from_date",
+      "label": "From Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "to_date",
+      "label": "To Date",
+      "fieldtype": "Date"
+    }
+  ]
+}

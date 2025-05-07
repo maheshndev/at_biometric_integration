@@ -24,7 +24,6 @@ ATTENDANCE_NAME = "attendance_logs"
 ATTENDANCE_DIR = frappe.get_site_path("public", "files", ATTENDANCE_NAME)
 
 def get_attendance_file_path(ip):
-    os.makedirs(ATTENDANCE_DIR, exist_ok=True)
     date_str = getdate(nowdate()).strftime("%Y-%m-%d")
     return os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
 
@@ -132,10 +131,18 @@ def cleanup_old_attendance_logs():
 
 @frappe.whitelist()
 def fetch_and_upload_attendance():
+    if not os.path.exists(ATTENDANCE_DIR):
+        os.makedirs(ATTENDANCE_DIR, exist_ok=True)
+        
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
-
+    
+    if not devices:
+        response["errors"].append("No devices found.")
+        return response
+    
     for device in devices:
+        
         ip = device["device_ip"]
         port = device.get("device_port", 4370)
         file_path = get_attendance_file_path(ip)

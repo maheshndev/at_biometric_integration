@@ -1,93 +1,97 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2025-03-05 12:16:55.994912",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "employee",
-  "employee_name",
-  "date",
-  "status",
-  "attendance_status",
-  "attendance_type",
-  "column_break_mcfx",
-  "in_time",
-  "out_time",
-  "reason"
- ],
- "fields": [
-  {
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "label": "Employee",
-   "options": "Employee"
-  },
-  {
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "label": "Date"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "Draft\nPending\nApproved\nRejected"
-  },
-  {
-    "fieldname": "attendance_status",
-    "fieldtype": "Select",
-    "label": "Attendance Status",
-    "options": "\nPresent\nAbsent\nHalf Day\nOn Leave\nWork From Home"
-   },
-  {
-   "fieldname": "column_break_mcfx",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "in_time",
-   "fieldtype": "Time",
-   "label": "In Time"
-  },
-  {
-   "fieldname": "out_time",
-   "fieldtype": "Time",
-   "label": "Out Time"
-  },
-  {
-   "fieldname": "reason",
-   "fieldtype": "Small Text",
-   "label": "Reason"
-  },
-  {
-   "fetch_from": "employee.employee_name",
-   "fieldname": "employee_name",
-   "fieldtype": "Data",
-   "label": "Employee Name"
-  }
- ],
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-03-05 12:47:54.025199",
- "modified_by": "Administrator",
- "module": "At Biometric Integration",
- "name": "Attendance Regularization",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "doctype": "DocType",
+    "name": "Attendance Regularization",
+    "module": "At Biometric Integration",
+    "engine": "InnoDB",
+    "field_order": [
+        "employee",
+        "employee_name",
+        "date",
+        "status",
+        "attendance_status",
+        "attendance_type",
+        "column_break_mcfx",
+        "in_time",
+        "out_time",
+        "reason"
+    ],
+    "fields": [
+        {
+            "fieldname": "employee",
+            "fieldtype": "Link",
+            "label": "Employee",
+            "options": "Employee"
+        },
+        {
+            "fieldname": "employee_name",
+            "fieldtype": "Data",
+            "label": "Employee Name",
+            "fetch_from": "employee.employee_name"
+        },
+        {
+            "fieldname": "date",
+            "fieldtype": "Date",
+            "label": "Date"
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Draft\nPending\nApproved\nRejected"
+        },
+        {
+            "fieldname": "attendance_status",
+            "fieldtype": "Select",
+            "label": "Attendance Status",
+            "options": "\nPresent\nAbsent\nHalf Day\nOn Leave\nWork From Home"
+        },
+        {
+            "fieldname": "attendance_type",
+            "fieldtype": "Select",
+            "label": "Attendance Type",
+            "options": "\nRegular\nIrregular"
+        },
+        {
+            "fieldname": "column_break_mcfx",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "in_time",
+            "fieldtype": "Time",
+            "label": "In Time"
+        },
+        {
+            "fieldname": "out_time",
+            "fieldtype": "Time",
+            "label": "Out Time"
+        },
+        {
+            "fieldname": "reason",
+            "fieldtype": "Small Text",
+            "label": "Reason"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended Form",
+            "options": "Attendance Regularization",
+            "hidden": 1
+        }
+    ],
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC"
 }
