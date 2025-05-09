@@ -6,27 +6,11 @@
   "report_type": "Script Report",
   "is_standard": "Yes",
   "filters": [
-    {
-      "fieldname": "period",
-      "label": "Period",
-      "fieldtype": "Select",
-      "options": "Daily\nWeekly\nMonthly",
-      "default": "Daily"
-    },
-    {
-      "fieldname": "month",
-      "label": "Month",
-      "fieldtype": "Date"
-    },
-    {
-      "fieldname": "from_date",
-      "label": "From Date",
-      "fieldtype": "Date"
-    },
-    {
-      "fieldname": "to_date",
-      "label": "To Date",
-      "fieldtype": "Date"
-    }
+    { "fieldname": "period", "label": "Period", "fieldtype": "Select", "options": "Daily\nWeekly\nMonthly", "default": "Daily" },
+    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date" },
+    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date" },
+    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee" },
+    { "fieldname": "month", "label": "Month", "fieldtype": "Select" },
+    { "fieldname": "year", "label": "Year", "fieldtype": "Select" }
   ]
 }
