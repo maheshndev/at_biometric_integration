@@ -69,7 +69,7 @@
     "parenttype": "Workflow",
     "send_email": 0,
     "state": "Rejected",
-    "update_field": null,
+    "update_field": "status",
     "update_value": "Rejected",
     "workflow_builder_id": "4"
    }
