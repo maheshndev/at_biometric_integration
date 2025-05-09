@@ -24,7 +24,6 @@ ATTENDANCE_NAME = "attendance_logs"
 ATTENDANCE_DIR = frappe.get_site_path("public", "files", ATTENDANCE_NAME)
 
 def get_attendance_file_path(ip):
-    os.makedirs(ATTENDANCE_DIR, exist_ok=True)
     date_str = getdate(nowdate()).strftime("%Y-%m-%d")
     return os.path.join(ATTENDANCE_DIR, f"attendance_{ip}_{date_str}.json")
 
@@ -132,10 +131,18 @@ def cleanup_old_attendance_logs():
 
 @frappe.whitelist()
 def fetch_and_upload_attendance():
+    if not os.path.exists(ATTENDANCE_DIR):
+        os.makedirs(ATTENDANCE_DIR, exist_ok=True)
+        
     response = {"success": [], "errors": []}
     devices = frappe.get_all("Biometric Device Settings", fields=["device_ip", "device_port", "name"])
-
+    
+    if not devices:
+        response["errors"].append("No devices found.")
+        return response
+    
     for device in devices:
+        
         ip = device["device_ip"]
         port = device.get("device_port", 4370)
         file_path = get_attendance_file_path(ip)
@@ -234,7 +241,7 @@ def mark_absent_if_no_checkin_leave_holiday(employee, date, shift):
             "status": status,
             "leave_type": leave_type,
             "leave_application": leave_application,
-            "half_day_status": "Absent" if leave_status == "Half Day" else "",
+            # "half_day_status": "Absent" if leave_status == "Half Day" else "",
         })
         attendance.insert(ignore_permissions=True)
         frappe.db.commit()
@@ -266,10 +273,10 @@ def handle_non_holiday_attendance(employee, date, shift, checkins):
         employee, date, shift, first, last, status,
         working_hours=hours, leave_type=leave_type,
         leave_application=leave_application,
-        half_day_status="Absent" if leave_status == "Half Day" else ""
+        # half_day_status="Absent" if leave_status == "Half Day" else ""
     )
 
-def create_attendance(employee, date, shift, first, last, status, working_hours=0, leave_type=None, leave_application=None, half_day_status=""):
+def create_attendance(employee, date, shift, first, last, status, working_hours=0, leave_type=None, leave_application=None):
     if not first or not last:
         return
 
@@ -288,7 +295,7 @@ def create_attendance(employee, date, shift, first, last, status, working_hours=
         "working_hours": working_hours,
         "in_time": first["time"],
         "out_time": last["time"],
-        "half_day_status": half_day_status,
+        # "half_day_status": half_day_status,
         "late_entry": False,
         "early_exit": False
     })
@@ -316,7 +323,7 @@ def update_attendance(attendance_name, employee, date, shift, first, last):
         "status": status,
         "leave_type": leave_type,
         "leave_application": leave_application,
-        "half_day_status": "Absent" if status == "Half Day" else "",
+        # "half_day_status": "Absent" if status == "Half Day" else "",
     })
 
     frappe.db.set_value("Employee Checkin", first["name"], {"attendance": attendance_name, "log_type": "IN"})

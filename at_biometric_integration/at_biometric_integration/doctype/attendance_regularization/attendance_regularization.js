@@ -1,53 +1,69 @@
 frappe.ui.form.on("Attendance Regularization", {
-    employee(frm) {
-        if (frm.doc.employee) {
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "Employee",
-                    filters: { name: frm.doc.employee },
-                    fieldname: ["employee_name"]
-                },
-                callback(r) {
-                    frm.set_value("employee_name", r.message.employee_name);
-                }
-            });
+    refresh: function(frm) {
+        // Add custom button to validate check-in/out records
+        frm.add_custom_button("Validate Checkin/Out", function() {
+            validate_checkin_out(frm);
+        });
+
+        // Disable time fields if the document is not Draft or Rejected
+        if (["Approved", "Rejected", "Cancelled"].includes(frm.doc.status)) {
+            frm.set_df_property("in_time", "read_only", 1);
+            frm.set_df_property("out_time", "read_only", 1);
+        } else {
+            frm.set_df_property("in_time", "read_only", 0);
+            frm.set_df_property("out_time", "read_only", 0);
         }
     },
-    date(frm) {
-        if (frm.doc.date) {
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "Attendance",
-                    filters: {
-                        employee: frm.doc.employee,
-                        attendance_date: frm.doc.date
-                    },
-                    fieldname: ["attendance_status"]
-                },
-                callback(r) {
-                    if (r.message) {
-                        frm.set_value("attendance_status", r.message.attendance_status);
-                    }
-                }
-            });
-        }
+
+    in_time: function(frm) {
+        update_attendance_status(frm);
     },
-    in_time(frm) {
-        if (frm.doc.in_time && frm.doc.out_time) {
-            // Ensure that in-time is before out-time
-            if (frm.doc.in_time >= frm.doc.out_time) {
-                frappe.throw("In Time must be before Out Time.");
-            }
-        }
-    },
-    out_time(frm) {
-        if (frm.doc.in_time && frm.doc.out_time) {
-            // Ensure that out-time is after in-time
-            if (frm.doc.out_time <= frm.doc.in_time) {
-                frappe.throw("Out Time must be after In Time.");
-            }
-        }
+
+    out_time: function(frm) {
+        update_attendance_status(frm);
     }
 });
+
+// Function to automatically update attendance status
+function update_attendance_status(frm) {
+    if (frm.doc.in_time && frm.doc.out_time) {
+        frm.set_value("attendance_status", "Present");
+    } else if (!frm.doc.in_time && !frm.doc.out_time) {
+        frm.set_value("attendance_status", "Absent");
+    } else if (frm.doc.in_time || frm.doc.out_time) {
+        frm.set_value("attendance_status", "Partial");
+    } else {
+        frm.set_value("attendance_status", "");
+    }
+}
+
+// Function to validate if check-in/out records already exist
+function validate_checkin_out(frm) {
+    if (!frm.doc.employee || !frm.doc.date) {
+        frappe.msgprint("Please enter Employee and Date.");
+        return;
+    }
+
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Employee Checkin",
+            filters: {
+                employee: frm.doc.employee,
+                time: [">=", frm.doc.date + " 00:00:00", "<=", frm.doc.date + " 23:59:59"]
+            },
+            fields: ["name", "log_type", "time"]
+        },
+        callback: function(response) {
+            if (response.message.length > 0) {
+                let message = "Existing Checkins:<br>";
+                response.message.forEach(checkin => {
+                    message += `- ${checkin.log_type} at ${checkin.time}<br>`;
+                });
+                frappe.msgprint(message);
+            } else {
+                frappe.msgprint("No existing check-in/out records found for this date.");
+            }
+        }
+    });
+}
