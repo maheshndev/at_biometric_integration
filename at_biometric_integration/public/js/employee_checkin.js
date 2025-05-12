@@ -37,7 +37,6 @@ frappe.listview_settings['Employee Checkin'] = {
             }, 5000);
             frappe.call({
                 method: "at_biometric_integration.at_biometric_integration.utils.mark_attendance",
-                // method: "at_biometric_integration.api.test_new",
                 callback: function(response) {
                     if (response.message) {
                         let msg = "";
