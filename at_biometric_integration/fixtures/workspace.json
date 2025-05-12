@@ -1,7 +1,7 @@
 [
  {
   "charts": [],
-  "content": "[{\"id\":\"title-block\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Biometric Workspace</span>\",\"col\":12}},{\"id\":\"daily-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Daily Attendance Report\",\"col\":3}},{\"id\":\"weekly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Weekly Attendance Report\",\"col\":3}},{\"id\":\"monthly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Attendance Report\",\"col\":3}}]",
+  "content": "[{\"id\":\"title-block\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Biometric Workspace</span>\",\"col\":12}},{\"id\":\"daily-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Daily Attendance Report\",\"col\":3}},{\"id\":\"weekly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Weekly Attendance Report\",\"col\":3}},{\"id\":\"monthly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Attendance Report\",\"col\":3}},{\"id\":\"cKiR2-jfVQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Regularization Request\",\"col\":3}}]",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
@@ -12,7 +12,7 @@
   "is_hidden": 0,
   "label": "Biometric Workspace",
   "links": [],
-  "modified": "2025-04-21 00:00:00",
+  "modified": "2025-05-12 17:43:02.450001",
   "module": "At Biometric Integration",
   "name": "Biometric Workspace",
   "number_cards": [],
@@ -25,7 +25,7 @@
   "shortcuts": [
    {
     "color": "Blue",
-    "doc_view": "Report",
+    "doc_view": "",
     "format": null,
     "icon": null,
     "kanban_board": null,
@@ -41,8 +41,25 @@
     "url": "/app/query-report/Attendance%20Report%20Summary?period=Daily"
    },
    {
+    "color": "Grey",
+    "doc_view": "",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Attendance Regularization Request",
+    "link_to": "",
+    "parent": "Biometric Workspace",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": "Attendance",
+    "restrict_to_domain": null,
+    "stats_filter": null,
+    "type": "URL",
+    "url": "/app/query-report/Attendance%20Regularization%20Request?period=Daily"
+   },
+   {
     "color": "Green",
-    "doc_view": "Report",
+    "doc_view": "",
     "format": null,
     "icon": null,
     "kanban_board": null,
@@ -59,7 +76,7 @@
    },
    {
     "color": "Purple",
-    "doc_view": "Report",
+    "doc_view": "",
     "format": null,
     "icon": null,
     "kanban_board": null,
