@@ -59,7 +59,7 @@ def execute(filters=None):
         attendance_map.setdefault(att.employee, {})[att.attendance_date] = att
 
     # Employees
-    employees = frappe.get_all("Employee", fields=["name", "holiday_list"], filters={
+    employees = frappe.get_all("Employee", fields=["name", "employee_name", "holiday_list"], filters={
         "status": "Active",
         "name": filters.get("employee") or ["!=", ""]
     })
@@ -120,7 +120,7 @@ def execute(filters=None):
                 absent += 1
 
         row = {
-            "employee": emp.name,
+            "employee": emp.name+" "+emp.employee_name,
             "present": present,
             "leave": leave,
             "absent": absent,
