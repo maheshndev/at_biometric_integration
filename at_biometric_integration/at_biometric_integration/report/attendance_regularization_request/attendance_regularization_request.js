@@ -10,7 +10,7 @@ frappe.query_reports["Attendance Regularization Request"] = {
             "default": "Daily",
             "reqd": 1,
             "on_change": function() {
-                updateVisibility();
+                setDefaultDates();
                 frappe.query_report.refresh();
             }
         },
@@ -43,37 +43,7 @@ frappe.query_reports["Attendance Regularization Request"] = {
     ],
 
     onload: function(report) {
-        // Fetch metadata (months and years) from the backend
-        frappe.call({
-            method: "frappe.desk.query_report.run",
-            args: {
-                report_name: "Attendance Regularization Request",
-                filters: {}
-            },
-            callback: function(response) {
-                if (response.message) {
-                    let metadata = response.message.metadata;
-
-                    // Populate the "Month" filter
-                    let monthField = frappe.query_report.get_filter("month");
-                    const monthNames = [
-                        "January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"
-                    ];
-                    monthField.df.options = metadata.months
-                        .map(m => monthNames[parseInt(m) - 1])
-                        .join("\n");
-                    monthField.refresh();
-
-                    // Populate the "Year" filter
-                    let yearField = frappe.query_report.get_filter("year");
-                    yearField.df.options = metadata.years.join("\n");
-                    yearField.refresh();
-                }
-            }
-        });
-
-        updateVisibility();
+        setDefaultDates();
         frappe.query_report.refresh();
     },
 
@@ -88,6 +58,31 @@ frappe.query_reports["Attendance Regularization Request"] = {
     }
 };
 
+// Function to set default dates based on the selected period
+function setDefaultDates() {
+    const period = frappe.query_report.get_filter_value("period");
+    const today = frappe.datetime.get_today();
+    let from_date, to_date;
+
+    if (period === "Daily") {
+        from_date = today;
+        to_date = today;
+    } else if (period === "Weekly") {
+        const startOfWeek = frappe.datetime.add_days(today, -frappe.datetime.get_day_diff(today, frappe.datetime.week_start(today)));
+        const endOfWeek = frappe.datetime.add_days(startOfWeek, 6);
+        from_date = startOfWeek;
+        to_date = endOfWeek;
+    } else if (period === "Monthly") {
+        const startOfMonth = frappe.datetime.month_start(today);
+        const endOfMonth = frappe.datetime.month_end(today);
+        from_date = startOfMonth;
+        to_date = endOfMonth;
+    }
+
+    frappe.query_report.set_filter_value("from_date", from_date);
+    frappe.query_report.set_filter_value("to_date", to_date);
+}
+
 // Function to open Attendance Regularization form with pre-filled values
 function openAttendanceRegularizationForm(employee, employee_name, in_time, out_time, attendance_date, working_hours, status) {
     frappe.new_doc("Attendance Regularization", {
@@ -99,21 +94,4 @@ function openAttendanceRegularizationForm(employee, employee_name, in_time, out_
         reason: "Regularization requested via report",
         attendance_status: status
     });
-}
-
-function updateVisibility() {
-    let period = frappe.query_report.get_filter_value("period");
-    let month = frappe.query_report.get_filter("month");
-    let year = frappe.query_report.get_filter("year");
-
-    if (period === "Monthly") {
-        month.df.hidden = 0;
-        year.df.hidden = 0;
-    } else {
-        month.df.hidden = 1;
-        year.df.hidden = 1;
-    }
-
-    month.refresh();
-    year.refresh();
 }

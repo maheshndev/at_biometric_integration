@@ -182,7 +182,6 @@ doctype_list_js = {
 # ------------------------------
 #
 # override_whitelisted_methods = {
-#   "test_new": "at_biometric_integration.utils.test_new",
 #   "sync_biometric_attendance": "at_biometric_integration.api.trigger_biometric_sync"
 # }
 #
