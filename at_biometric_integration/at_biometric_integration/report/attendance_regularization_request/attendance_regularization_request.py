@@ -11,7 +11,7 @@ def execute(filters=None):
         {"fieldname": "attendance_date", "label": "Attendance Date", "fieldtype": "Date", "width": 150},
         {"fieldname": "in_time", "label": "In Time", "fieldtype": "Time", "width": 150},
         {"fieldname": "out_time", "label": "Out Time", "fieldtype": "Time", "width": 150},
-        {"fieldname": "working_hours", "label": "Working Hours (Hrs)", "fieldtype": "Float", "width": 150},
+        {"fieldname": "working_hours", "label": "Working Hours (HH:MM)", "fieldtype": "Data", "width": 150},
         {"fieldname": "status", "label": "Status", "fieldtype": "Select", "options":"", "width": 150},
         {"fieldname": "action", "label": "Action", "fieldtype": "Data", "width": 100}  # New column for the action button
     ]
@@ -43,6 +43,13 @@ def execute(filters=None):
 
     for record in attendance_records:
         employee_name = frappe.get_value("Employee", record.employee, "employee_name")
+        # convert record.working_hours to HH:MM format
+        if record.working_hours:
+            hours = int(record.working_hours)
+            minutes = int((record.working_hours - hours) * 60)
+            formatted_working_hours = f"{hours:02d}:{minutes:02d}"
+        else:
+            formatted_working_hours = "-"
 
         data.append({
             "employee": record.employee,
@@ -50,7 +57,7 @@ def execute(filters=None):
             "attendance_date": record.attendance_date,
             "in_time": record.in_time,
             "out_time": record.out_time,
-            "working_hours": record.working_hours,
+            "working_hours": formatted_working_hours,
             "status": record.status,
             "action": "Regularize"  # Placeholder for the action button
         })
