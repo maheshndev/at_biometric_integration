@@ -4,7 +4,7 @@ from frappe.utils import getdate, nowdate
 from datetime import datetime, timedelta
 
 def actual_working_duration(employee, date):
-    """Calculate actual working hours based on alternating IN/OUT checkins (odd as IN, even as OUT)."""
+    """Calculate actual working hours based on alternating IN/OUT checkins (odd as IN, even as OUT) and return in HH:MM format."""
     checkins = frappe.get_all("Employee Checkin",
         filters={
             "employee": employee,
@@ -13,7 +13,7 @@ def actual_working_duration(employee, date):
         fields=["time"],
         order_by="time"
     )
-
+    
     total_duration = 0.0
     times = [c.time for c in checkins]
 
@@ -23,10 +23,12 @@ def actual_working_duration(employee, date):
         if out_time > in_time:
             total_duration += (out_time - in_time).total_seconds()
 
-    return round(total_duration / 3600, 2) if total_duration else 0.0
-
-
-
+    if total_duration:
+        hours = int(total_duration // 3600)
+        minutes = int((total_duration % 3600) // 60)
+        return f"{hours:02d}:{minutes:02d}"
+    else:
+        return "-"
 
 def update_working_hours_from_checkins():
     employees = frappe.get_all("Employee", fields=["name"])
@@ -37,7 +39,6 @@ def update_working_hours_from_checkins():
             fields=["time"],
             order_by="time asc"
         )
-
         # Group checkins by date
         checkins_by_date = {}
         for checkin in checkins:
@@ -70,11 +71,11 @@ def execute(filters=None):
         {"label": "Date", "fieldname": "date", "fieldtype": "Date", "width": 100},
         {"label": "In Time", "fieldname": "in_time", "fieldtype": "Time", "width": 100},
         {"label": "Out Time", "fieldname": "out_time", "fieldtype": "Time", "width": 100},
-        {"label": "Actual Work Duration", "fieldname": "working_hours", "fieldtype": "Float", "width": 100},
-        {"label": "Total Work Duration", "fieldname": "total_working_hours", "fieldtype": "Float", "width": 100},
+        {"label": "Actual Work Duration", "fieldname": "working_hours", "fieldtype": "Data", "width": 100},
+        {"label": "Total Work Duration", "fieldname": "total_working_hours", "fieldtype": "Data", "width": 100},
         {"label": "Early Entry", "fieldname": "early_entry", "fieldtype": "Data", "width": 100},
-        {"label": "LateBy", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
-        {"label": "EarlyGoingBy", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
+        {"label": "Late By", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
+        {"label": "Early Going By", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
         {"label": "Late Going", "fieldname": "late_going", "fieldtype": "Data", "width": 100},
         {"label": "Over Time", "fieldname": "over_time", "fieldtype": "Data", "width": 100},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
@@ -128,7 +129,7 @@ def execute(filters=None):
             attendance.status,
             attendance.attendance_date AS date,
             attendance.shift,
-            attendance.working_hours AS total_working_hours,
+            attendance.working_hours AS t_working_hours,
             attendance.company,
             TIME(attendance.in_time) AS in_time,
             TIME(attendance.out_time) AS out_time,
@@ -140,12 +141,19 @@ def execute(filters=None):
         LEFT JOIN `tabShift Type` st ON st.name = attendance.shift
         {condition_str}
         ORDER BY attendance.attendance_date DESC
-    """, as_dict=True)
+        """, as_dict=True)
 
     for row in data:
         # Get actual working hours for the day from checkins
         row["working_hours"] = actual_working_duration(row.employee, row.date)
-
+        total_working_hours = row["t_working_hours"]
+        # convert to hours and minutes
+        if total_working_hours:
+            hours = int(total_working_hours)
+            minutes = int((total_working_hours - hours) * 60)
+            row["total_working_hours"] = f"{hours:02d}:{minutes:02d}"
+        else:
+            row["total_working_hours"] = "-"
         # Compute shift duration
         try:
             shift_start = datetime.strptime(str(row.get("shift_start")), "%H:%M:%S")
@@ -160,9 +168,11 @@ def execute(filters=None):
             shift_duration = 0
 
         # Calculate Over Time
-        if row.get("total_working_hours") and shift_duration:
-            ot = row["total_working_hours"] - shift_duration
-            row["over_time"] = round(ot, 2) if ot > 0 else "-"
+        ot = row["t_working_hours"] - shift_duration
+        if ot > 0:
+            hours = int(ot)
+            minutes = int((ot - hours) * 60)
+            row["over_time"] = f"{hours:02d}:{minutes:02d}"
         else:
             row["over_time"] = "-"
 
@@ -179,7 +189,7 @@ def execute(filters=None):
                 if condition(t1, t2):
                     delta = abs(datetime.combine(datetime.today(), t1) - datetime.combine(datetime.today(), t2))
                     minutes = delta.seconds // 60
-                    row[metric] = f"{minutes // 60}:{minutes % 60:02d}"
+                    row[metric] = f"{minutes // 60:02d}:{minutes % 60:02d}"
                 else:
                     row[metric] = "-"
             except:
