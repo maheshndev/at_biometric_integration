@@ -33,12 +33,14 @@ frappe.query_reports["Attendance Regularization Request"] = {
         {
             "fieldname": "month",
             "label": "Month",
-            "fieldtype": "Select"
+            "fieldtype": "Select",
+            "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
         },
         {
             "fieldname": "year",
             "label": "Year",
-            "fieldtype": "Select"
+            "fieldtype": "Select",
+            "options": "\n2020\n2021\n2022\n2023\n2024\n2025"
         }
     ],
 
