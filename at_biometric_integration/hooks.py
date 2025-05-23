@@ -255,7 +255,12 @@ scheduler_events = {
     ],
     "daily": [
         "at_biometric_integration.at_biometric_integration.utils.mark_attendance"
-    ]
+    ],
+    "cron": {
+        "*/15 * * * *": [
+            "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
+        ]
+    }
 }
 # scheduler_events = {
 #     "cron": {

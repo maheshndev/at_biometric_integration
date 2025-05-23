@@ -1,10 +1,9 @@
-
 import frappe
 from frappe.utils import getdate, nowdate
 from datetime import datetime, timedelta
 
-def actual_working_duration(employee, date):
-    """Calculate actual working hours based on alternating IN/OUT checkins (odd as IN, even as OUT) and return in HH:MM format."""
+def get_checkin_times(employee, date):
+    """Return earliest and latest checkin times for the employee on the given date."""
     checkins = frappe.get_all("Employee Checkin",
         filters={
             "employee": employee,
@@ -13,64 +12,60 @@ def actual_working_duration(employee, date):
         fields=["time"],
         order_by="time"
     )
-    
+    if not checkins:
+        return None, None
+    times = [c.time for c in checkins]
+    return min(times), max(times)
+
+def actual_working_duration(employee, date):
+    """Calculate actual working hours based on alternating IN/OUT checkins and return in HH:MM format."""
+    checkins = frappe.get_all("Employee Checkin",
+        filters={
+            "employee": employee,
+            "time": ["between", [f"{date} 00:00:00", f"{date} 23:59:59"]]
+        },
+        fields=["time"],
+        order_by="time"
+    )
     total_duration = 0.0
     times = [c.time for c in checkins]
-
     for i in range(0, len(times) - 1, 2):
         in_time = times[i]
         out_time = times[i + 1]
         if out_time > in_time:
             total_duration += (out_time - in_time).total_seconds()
-
     if total_duration:
         hours = int(total_duration // 3600)
         minutes = int((total_duration % 3600) // 60)
         return f"{hours:02d}:{minutes:02d}"
-    else:
+    return "-"
+
+def get_shift_duration(shift_start, shift_end):
+    try:
+        shift_start_dt = datetime.strptime(str(shift_start), "%H:%M:%S")
+        shift_end_dt = datetime.strptime(str(shift_end), "%H:%M:%S")
+        if shift_end_dt < shift_start_dt:
+            shift_end_dt += timedelta(days=1)
+        return (shift_end_dt - shift_start_dt).total_seconds() / 3600
+    except Exception:
+        return 0
+
+def time_diff_in_hhmm(t1, t2):
+    try:
+        delta = abs(datetime.combine(datetime.today(), t1) - datetime.combine(datetime.today(), t2))
+        minutes = delta.seconds // 60
+        return f"{minutes // 60:02d}:{minutes % 60:02d}"
+    except Exception:
         return "-"
-
-def update_working_hours_from_checkins():
-    employees = frappe.get_all("Employee", fields=["name"])
-
-    for emp in employees:
-        checkins = frappe.get_all("Employee Checkin",
-            filters={"employee": emp.name},
-            fields=["time"],
-            order_by="time asc"
-        )
-        # Group checkins by date
-        checkins_by_date = {}
-        for checkin in checkins:
-            date_str = checkin.time.date().isoformat()
-            checkins_by_date.setdefault(date_str, []).append(checkin.time)
-
-        for date_str, times in checkins_by_date.items():
-            if len(times) < 2:
-                continue  # Need both in and out time to compute hours
-
-            in_time = times[0]
-            out_time = times[-1]
-            working_hours = round((out_time - in_time).total_seconds() / 3600, 2)
-
-            attendance = frappe.get_value("Attendance", {
-                "employee": emp.name,
-                "attendance_date": date_str
-            }, "name")
-
-            if attendance:
-                frappe.db.set_value("Attendance", attendance, "working_hours", working_hours)
-                frappe.db.commit()
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
-    # update_working_hours_from_checkins()
     columns = [
         {"label": "Employee", "fieldname": "employee", "fieldtype": "Link", "options": "Employee", "width": 160},
         {"label": "Shift", "fieldname": "shift", "fieldtype": "Link", "options": "Shift Type", "width": 120},
         {"label": "Date", "fieldname": "date", "fieldtype": "Date", "width": 100},
-        {"label": "In Time", "fieldname": "in_time", "fieldtype": "Time", "width": 100},
-        {"label": "Out Time", "fieldname": "out_time", "fieldtype": "Time", "width": 100},
+        {"label": "In Time", "fieldname": "in_time", "fieldtype": "Data", "width": 100},
+        {"label": "Out Time", "fieldname": "out_time", "fieldtype": "Data", "width": 100},
         {"label": "Actual Work Duration", "fieldname": "working_hours", "fieldtype": "Data", "width": 100},
         {"label": "Total Work Duration", "fieldname": "total_working_hours", "fieldtype": "Data", "width": 100},
         {"label": "Early Entry", "fieldname": "early_entry", "fieldtype": "Data", "width": 100},
@@ -84,8 +79,6 @@ def execute(filters=None):
     ]
 
     today = getdate(nowdate())
-
-    # Determine date range
     period = filters.get("period")
     if period == "Monthly" and filters.get("months"):
         month_map = {
@@ -117,15 +110,13 @@ def execute(filters=None):
         conditions.append(f"attendance.company = '{filters.company}'")
     if filters.get("department"):
         conditions.append(f"emp.department = '{filters.department}'")
-
     condition_str = "WHERE " + " AND ".join(conditions)
 
-    # Main data query
     data = frappe.db.sql(f"""
         SELECT
             attendance.name AS attendance_id,
             attendance.employee,
-            emp.employee_name,
+            emp.employee_name as employee_name,
             attendance.status,
             attendance.attendance_date AS date,
             attendance.shift,
@@ -144,36 +135,57 @@ def execute(filters=None):
         """, as_dict=True)
 
     for row in data:
-        # Get actual working hours for the day from checkins
+        # Get checkin times if in_time/out_time missing
+        in_time = row.get("in_time")
+        out_time = row.get("out_time")
+        if not in_time or not out_time or in_time == "None" or out_time == "None":
+            checkin_in, checkin_out = get_checkin_times(row.employee, row.date)
+            if checkin_in:
+                in_time = checkin_in.time()
+                row["in_time"] = in_time.strftime("%H:%M:%S")
+            else:
+                row["in_time"] = "-"
+            if checkin_out:
+                out_time = checkin_out.time()
+                row["out_time"] = out_time.strftime("%H:%M:%S")
+            else:
+                row["out_time"] = "-"
+        else:
+            # Convert string to time
+            try:
+                in_time = datetime.strptime(str(in_time), "%H:%M:%S").time()
+                out_time = datetime.strptime(str(out_time), "%H:%M:%S").time()
+            except Exception:
+                in_time = out_time = None
+
+        # Actual working hours from checkins
         row["working_hours"] = actual_working_duration(row.employee, row.date)
-        total_working_hours = row["t_working_hours"]
-        # convert to hours and minutes
-        if total_working_hours:
-            hours = int(total_working_hours)
-            minutes = int((total_working_hours - hours) * 60)
-            row["total_working_hours"] = f"{hours:02d}:{minutes:02d}"
+        
+        # Total working hours (from attendance)
+        twh = row.get("t_working_hours")
+        if twh is not None:
+            try:
+                hours = int(twh)
+                minutes = int(round((float(twh) - hours) * 60))
+                row["total_working_hours"] = f"{hours:02d}:{minutes:02d}" if twh else "-"
+            except Exception:
+                row["total_working_hours"] = "-"
         else:
             row["total_working_hours"] = "-"
-        # Compute shift duration
+
+        # Shift duration
+        shift_duration = get_shift_duration(row.get("shift_start"), row.get("shift_end"))
+
+        # Over Time
         try:
-            shift_start = datetime.strptime(str(row.get("shift_start")), "%H:%M:%S")
-            shift_end = datetime.strptime(str(row.get("shift_end")), "%H:%M:%S")
-
-            # Handle overnight shifts
-            if shift_end < shift_start:
-                shift_end += timedelta(days=1)
-
-            shift_duration = (shift_end - shift_start).total_seconds() / 3600
-        except:
-            shift_duration = 0
-
-        # Calculate Over Time
-        ot = row["t_working_hours"] - shift_duration
-        if ot > 0:
-            hours = int(ot)
-            minutes = int((ot - hours) * 60)
-            row["over_time"] = f"{hours:02d}:{minutes:02d}"
-        else:
+            ot = float(row.get("t_working_hours") or 0) - shift_duration
+            if ot > 0:
+                hours = int(ot)
+                minutes = int(round((ot - hours) * 60))
+                row["over_time"] = f"{hours:02d}:{minutes:02d}"
+            else:
+                row["over_time"] = "-"
+        except Exception:
             row["over_time"] = "-"
 
         # Early/Late calculations
@@ -184,16 +196,23 @@ def execute(filters=None):
             ("late_going", lambda o, e: o > e, "out_time", "shift_end"),
         ]:
             try:
-                t1 = datetime.strptime(str(row.get(time_field1)), "%H:%M:%S").time()
-                t2 = datetime.strptime(str(row.get(time_field2)), "%H:%M:%S").time()
-                if condition(t1, t2):
-                    delta = abs(datetime.combine(datetime.today(), t1) - datetime.combine(datetime.today(), t2))
-                    minutes = delta.seconds // 60
-                    row[metric] = f"{minutes // 60:02d}:{minutes % 60:02d}"
+                t1_str = row.get(time_field1)
+                t2_str = row.get(time_field2)
+                if t1_str and t2_str and t1_str != "-" and t2_str != "-":
+                    t1 = datetime.strptime(str(t1_str), "%H:%M:%S").time()
+                    t2 = datetime.strptime(str(t2_str), "%H:%M:%S").time()
+                    if condition(t1, t2):
+                        row[metric] = time_diff_in_hhmm(t1, t2)
+                    else:
+                        row[metric] = "-"
                 else:
                     row[metric] = "-"
-            except:
+            except Exception:
                 row[metric] = "-"
 
+        # Always ensure all fields are present
+        for field in ["in_time", "out_time", "working_hours", "total_working_hours", "early_entry", "late_entry", "early_going", "late_going", "over_time"]:
+            if field not in row or row[field] is None:
+                row[field] = "-"
 
     return columns, data
