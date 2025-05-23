@@ -37,7 +37,7 @@ This app bridges your biometric attendance devices with Frappe/ERPNext, automati
     pip install pyzk
     ```
 3. **Configure Device Settings:**
-    - Go to the app configuration page in your Frappe/ERPNext site.
+    - Go to the app biometric device configuration page in your Frappe/ERPNext site.
     - Enter your ESSL device IP address and credentials.
     - Map device user IDs to employee records.
 
