@@ -1,10 +1,20 @@
-
 frappe.listview_settings['Employee Checkin'] = {
     onload: function(listview) {
         listview.page.add_inner_button(__('Sync Biometric Data'), function() {
+            // Show progress bar in msgprint
+            let progress_html = `
+                <div>
+                    <b>Wait: </b> Sync in background progress ....
+                    <br><br>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            `;
             frappe.msgprint({
                 title: __('Wait'),
-                message: __('<b>Wait: </b> Sync in background progress ....  <br><br>'),
+                message: progress_html,
                 indicator: 'blue'
             });
             setTimeout(() => {
@@ -26,10 +36,22 @@ frappe.listview_settings['Employee Checkin'] = {
                 }
             });
         }).addClass("btn-secondary");
+
         listview.page.add_inner_button(__('Mark Attendance'), function() {
+            // Show progress bar in msgprint
+            let progress_html = `
+                <div>
+                    <b>Wait: </b>Mark Attendance in progress ....
+                    <br><br>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            `;
             frappe.msgprint({
                 title: __('Wait'),
-                message: __('<b>Wait: </b>Mark Attendance in progress ....  <br><br>'),
+                message: progress_html,
                 indicator: 'blue'
             });
             setTimeout(() => {
@@ -51,8 +73,5 @@ frappe.listview_settings['Employee Checkin'] = {
                 }
             });
         }).addClass("btn-secondary");
-
     }
 };
-
-
