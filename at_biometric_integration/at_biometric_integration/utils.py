@@ -192,7 +192,7 @@ def fetch_and_upload_attendance():
             response["errors"].append(f"Error processing device {ip}: {str(e)}")
 
     # After all devices, you could also create check-ins for all at once if needed:
-    # create_frappe_attendance_multi(devices)
+    # create_frappe_attendance_multi(devices)   
 
     cleanup_old_attendance_logs()
     return response
