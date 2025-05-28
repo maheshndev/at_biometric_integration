@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import calendar
 
 def format_number(val):
-    # Return "-" for zero or zero-like values
     if val in [0, 0.0, "0", "00", "0.0", "00.00"]:
         return "-"
     if isinstance(val, int):
@@ -30,17 +29,16 @@ def execute(filters=None):
             {"label": "Earned Leave Taken", "fieldname": "earned_leave_taken", "fieldtype": "Data", "width": 140},
             {"label": "Earned Leave Balance", "fieldname": "earned_leave_balance", "fieldtype": "Data", "width": 140},
             {"label": "Work From Home", "fieldname": "wfh", "fieldtype": "Data", "width": 120},
+            {"label": "LOP", "fieldname": "lop", "fieldtype": "Data", "width": 120},
             {"label": "Total Absent", "fieldname": "total_absent", "fieldtype": "Data", "width": 100},
             {"label": "Total Working Days", "fieldname": "total_working_days", "fieldtype": "Data", "width": 100},
             {"label": "Payment Days", "fieldname": "payment_days", "fieldtype": "Data", "width": 100},
-            
         ]
 
         today = getdate(nowdate())
         month_str = filters.get("month")
         year = int(filters.get("year") or today.year)
 
-        # Handle date range
         if month_str:
             try:
                 month = {
@@ -62,10 +60,9 @@ def execute(filters=None):
         if not from_date or not to_date:
             frappe.throw("Please select either a Month or both From Date and To Date")
 
-        # Attendance data
         att_filters = [from_date, to_date]
         att_query = """
-            SELECT employee, attendance_date, status
+            SELECT employee, attendance_date, status, leave_type
             FROM `tabAttendance`
             WHERE attendance_date BETWEEN %s AND %s
         """
@@ -82,7 +79,6 @@ def execute(filters=None):
         for att in attendance:
             attendance_map.setdefault(att.employee, {})[att.attendance_date] = att
 
-        # Employees
         emp_filters = {"status": "Active"}
         if filters.get("employee"):
             emp_filters["name"] = filters.get("employee")
@@ -97,7 +93,15 @@ def execute(filters=None):
         except Exception as e:
             frappe.throw(f"Error fetching leave types: {e}")
         if not earned_leave_types:
-            earned_leave_types = [""]  # Avoid SQL error if empty
+            earned_leave_types = [""]
+
+        # LOP leave types
+        try:
+            lop_leave_types = [lt.name for lt in frappe.get_all("Leave Type", filters={"is_lwp": 1})]
+        except Exception as e:
+            frappe.throw(f"Error fetching LOP leave types: {e}")
+        if not lop_leave_types:
+            lop_leave_types = [""]
 
         # Earned leave taken
         try:
@@ -117,6 +121,24 @@ def execute(filters=None):
         except Exception as e:
             frappe.throw(f"Error fetching leave applications: {e}")
 
+        # LOP leave taken
+        try:
+            lop_leave_applications = frappe.db.sql("""
+                SELECT employee, leave_type, SUM(total_leave_days) as total_leave_days
+                FROM `tabLeave Application`
+                WHERE status = 'Approved'
+                AND leave_type IN %(lop_leave_types)s
+                AND from_date <= %(to_date)s
+                AND to_date >= %(from_date)s
+                GROUP BY employee, leave_type
+            """, {
+                "lop_leave_types": tuple(lop_leave_types),
+                "from_date": from_date,
+                "to_date": to_date
+            }, as_dict=True)
+        except Exception as e:
+            frappe.throw(f"Error fetching LOP leave applications: {e}")
+
         # Earned leave allocations
         try:
             leave_allocations = frappe.db.sql("""
@@ -134,8 +156,8 @@ def execute(filters=None):
         except Exception as e:
             frappe.throw(f"Error fetching leave allocations: {e}")
 
-        # Maps for quick lookup
         earned_leave_taken_map = {(la.employee, la.leave_type): la.total_leave_days for la in leave_applications}
+        lop_leave_taken_map = {(la.employee, la.leave_type): la.total_leave_days for la in lop_leave_applications}
         leave_allocation_map = {(alloc.employee, alloc.leave_type): alloc.total_allocated for alloc in leave_allocations}
 
         totals = {
@@ -147,6 +169,7 @@ def execute(filters=None):
             "payment_days": 0,
             "earned_leave_taken": 0,
             "earned_leave_balance": 0,
+            "lop": 0,
         }
 
         all_dates = [from_date + timedelta(days=i) for i in range((to_date - from_date).days + 1)]
@@ -155,7 +178,6 @@ def execute(filters=None):
             emp_attendance = attendance_map.get(emp.name, {})
             weekend_dates = set(d for d in all_dates if d.weekday() in [5, 6])
 
-            # Holidays
             holiday_dates = set()
             if emp.holiday_list:
                 try:
@@ -170,17 +192,21 @@ def execute(filters=None):
             final_holidays = holiday_dates - weekend_dates
             valid_working_days = set(all_dates) - weekend_dates - final_holidays
 
-            present = leave = absent = half_day = wfh = 0
+            present = leave = absent = half_day = wfh = lop = 0
 
             for date in all_dates:
                 record = emp_attendance.get(date)
                 if date in valid_working_days:
                     if record:
                         status = record.status
+                        leave_type = record.leave_type
                         if status == "Present":
                             present += 1
                         elif status == "On Leave":
-                            leave += 1
+                            if leave_type in lop_leave_types:
+                                lop += 1
+                            else:
+                                leave += 1
                         elif status == "Half Day":
                             half_day += 1
                         elif status == "Work From Home":
@@ -190,7 +216,6 @@ def execute(filters=None):
                     else:
                         absent += 1
 
-            # Earned leave taken and balance
             earned_leave_taken = sum(
                 v for (ename, _), v in earned_leave_taken_map.items() if ename == emp.name
             )
@@ -199,17 +224,22 @@ def execute(filters=None):
             )
             earned_leave_balance = total_allocated - earned_leave_taken
 
+            lop_leave_taken = sum(
+                v for (ename, _), v in lop_leave_taken_map.items() if ename == emp.name
+            )
+
             row = {
                 "employee": emp.name,
                 "employee_name": emp.employee_name,
                 "present": present,
                 "leave": leave,
+                "lop": lop + lop_leave_taken,  # Add LOP from attendance and leave applications
                 "absent": absent,
                 "half_day": half_day,
                 "wfh": wfh,
                 "no_of_weekends": len(weekend_dates),
                 "no_of_holidays": len(final_holidays),
-                "total_absent": absent + leave + (half_day / 2),
+                "total_absent": absent + leave + (half_day / 2) + lop + lop_leave_taken,
                 "total_working_days": present + (half_day / 2),
                 "payment_days": leave + len(final_holidays) + len(weekend_dates) + absent + present + (half_day / 2) + wfh,
                 "earned_leave_taken": earned_leave_taken,
@@ -220,8 +250,7 @@ def execute(filters=None):
                 if key != "employee":
                     totals[key] += row.get(key, 0)
 
-            if present + leave + absent + half_day + wfh > 0:
-                # Format numbers
+            if present + leave + absent + half_day + wfh + lop > 0:
                 formatted_row = {}
                 for col in columns:
                     fname = col["fieldname"]
@@ -233,7 +262,6 @@ def execute(filters=None):
                 result.append(formatted_row)
 
         if result:
-            # Format totals row
             formatted_totals = {}
             for col in columns:
                 fname = col["fieldname"]
