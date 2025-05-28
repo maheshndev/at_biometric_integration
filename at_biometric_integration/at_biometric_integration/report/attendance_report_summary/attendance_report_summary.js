@@ -17,7 +17,12 @@ frappe.query_reports["Attendance Report Summary"] = {
             "fieldname": "months",
             "label": "Month",
             "fieldtype": "Select",
-            "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+            "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember",
+            "on_change": function() {
+                updateVisibility();
+                updateMonthOptions();
+                frappe.query_report.refresh();
+            }
         },
         {
             "fieldname": "year",
@@ -64,6 +69,7 @@ frappe.query_reports["Attendance Report Summary"] = {
     onload: function(report) {
         updateVisibility();
         updateYearOptions();
+        updateMonthOptions();
         frappe.query_report.refresh();
     }
 };
@@ -126,3 +132,7 @@ function updateYearOptions() {
     });
 }
 
+function updateMonthOptions(){
+   let currentMonth = new Date().getMonth();
+   return currentMonth;
+}

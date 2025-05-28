@@ -160,6 +160,7 @@ def execute(filters=None):
 
         # Actual working hours from checkins
         row["working_hours"] = actual_working_duration(row.employee, row.date)
+       
         
         # Total working hours (from attendance)
         twh = row.get("t_working_hours")
@@ -209,7 +210,8 @@ def execute(filters=None):
                     row[metric] = "-"
             except Exception:
                 row[metric] = "-"
-
+        row["in_time"] = in_time.strftime("%H:%M") if in_time else "-"
+        row["out_time"] = out_time.strftime("%H:%M") if out_time else "-"
         # Always ensure all fields are present
         for field in ["in_time", "out_time", "working_hours", "total_working_hours", "early_entry", "late_entry", "early_going", "late_going", "over_time"]:
             if field not in row or row[field] is None:
