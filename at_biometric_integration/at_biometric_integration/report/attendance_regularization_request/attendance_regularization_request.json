@@ -6,11 +6,42 @@
   "report_type": "Script Report",
   "is_standard": "Yes",
   "filters": [
-    { "fieldname": "period", "label": "Period", "fieldtype": "Select", "options": "Daily\nWeekly\nMonthly", "default": "Daily" },
-    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date" },
-    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date" },
-    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee" },
-    { "fieldname": "month", "label": "Month", "fieldtype": "Select" },
-    { "fieldname": "year", "label": "Year", "fieldtype": "Select" }
+    {
+      "fieldname": "period",
+      "label": "Period",
+      "fieldtype": "Select",
+      "options": "Daily\nWeekly\nMonthly",
+      "default": "Daily"
+    },
+    {
+      "fieldname": "from_date",
+      "label": "From Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "to_date",
+      "label": "To Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "employee",
+      "label": "Employee",
+      "fieldtype": "Link",
+      "options": "Employee"
+    },
+    {
+      "fieldname": "month",
+      "label": "Month",
+      "fieldtype": "Select",
+      "options": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
+    },
+    {
+      "fieldname": "year",
+      "label": "Year",
+      "fieldtype": "Select",
+      "options": "",
+      "get_query": "frappe.desk.reportview.get_distinct_years",
+      "default": ""
+    }
   ]
 }
