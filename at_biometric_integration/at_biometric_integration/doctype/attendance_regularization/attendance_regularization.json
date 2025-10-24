@@ -9,7 +9,6 @@
   "employee",
   "employee_name",
   "date",
-  "status",
   "attendance_status",
   "attendance_type",
   "column_break_mcfx",
@@ -35,12 +34,6 @@
    "fieldname": "date",
    "fieldtype": "Date",
    "label": "Date"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "Draft\nPending\nApproved\nRejected"
   },
   {
    "fieldname": "attendance_status",
@@ -83,8 +76,8 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-20 15:51:23.622311",
- "modified_by": "admin@demo.localhost",
+ "modified": "2025-10-24 12:31:04.192917",
+ "modified_by": "Administrator",
  "module": "At Biometric Integration",
  "name": "Attendance Regularization",
  "owner": "Administrator",

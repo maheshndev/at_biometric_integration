@@ -7,10 +7,10 @@
  "field_order": [
   "enable_regularization",
   "section_break_vfac",
-  "minimum_delay_hours",
+  "regularization_from_hours",
   "max_requests_per_month",
   "column_break_aaiu",
-  "maximum_delay_hours"
+  "regularization_to_hours"
  ],
  "fields": [
   {
@@ -23,32 +23,31 @@
    "fieldname": "section_break_vfac",
    "fieldtype": "Section Break"
   },
-    
   {
    "fieldname": "max_requests_per_month",
    "fieldtype": "Int",
    "label": "Max Requests Per Month"
   },
   {
-   "fieldname": "minimum_delay_hours",
-   "fieldtype": "Int",
-   "label": "Minimum Delay Hours"
+   "fieldname": "column_break_aaiu",
+   "fieldtype": "Column Break"
   },
   {
-     "fieldname": "column_break_aaiu",
-     "fieldtype": "Column Break"
+   "fieldname": "regularization_from_hours",
+   "fieldtype": "Int",
+   "label": "Regularization From Hours"
   },
   {
-   "fieldname": "maximum_delay_hours",
+   "fieldname": "regularization_to_hours",
    "fieldtype": "Int",
-   "label": "Maximum Delay Hours"
+   "label": "Regularization To Hours"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-15 11:58:58.927315",
+ "modified": "2025-10-23 18:53:19.347486",
  "modified_by": "Administrator",
  "module": "At Biometric Integration",
  "name": "Attendance Settings",
