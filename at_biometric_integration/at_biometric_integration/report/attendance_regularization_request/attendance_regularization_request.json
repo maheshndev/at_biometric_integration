@@ -10,8 +10,8 @@
       "fieldname": "period",
       "label": "Period",
       "fieldtype": "Select",
-      "options": "Daily\nWeekly\nMonthly",
-      "default": "Daily"
+      "options": "Weekly\nMonthly",
+      "default": "Weekly"
     },
     {
       "fieldname": "employee",

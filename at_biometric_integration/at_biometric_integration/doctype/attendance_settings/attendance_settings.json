@@ -9,8 +9,14 @@
   "section_break_vfac",
   "regularization_from_hours",
   "max_requests_per_month",
+  "checkin_grace_start_minutes",
   "column_break_aaiu",
-  "regularization_to_hours"
+  "regularization_to_hours",
+  "min_working_hours",
+  "checkout_grace_end_minutes",
+  "notification_settings_section",
+  "enable_notifications",
+  "notification_message_template"
  ],
  "fields": [
   {
@@ -21,7 +27,8 @@
   },
   {
    "fieldname": "section_break_vfac",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Regularization Settings"
   },
   {
    "fieldname": "max_requests_per_month",
@@ -41,13 +48,44 @@
    "fieldname": "regularization_to_hours",
    "fieldtype": "Int",
    "label": "Regularization To Hours"
+  },
+  {
+   "fieldname": "checkin_grace_start_minutes",
+   "fieldtype": "Int",
+   "label": "Checkin Grace Start (mins)"
+  },
+  {
+   "fieldname": "min_working_hours",
+   "fieldtype": "Float",
+   "label": "Minimum Working Hours"
+  },
+  {
+   "fieldname": "checkout_grace_end_minutes",
+   "fieldtype": "Int",
+   "label": "Checkout Grace End (mins)"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Notifications"
+  },
+  {
+   "fieldname": "notification_message_template",
+   "fieldtype": "Small Text",
+   "label": "Notification Message Template"
+  },
+  {
+   "fieldname": "notification_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Notification Settings"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-23 18:53:19.347486",
+ "modified": "2025-10-28 15:02:46.173413",
  "modified_by": "Administrator",
  "module": "At Biometric Integration",
  "name": "Attendance Settings",
