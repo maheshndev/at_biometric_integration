@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-14 16:29:23.616783",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_regularization",
+  "section_break_vfac",
+  "regularization_from_hours",
+  "max_requests_per_month",
+  "column_break_aaiu",
+  "regularization_to_hours"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable_regularization",
+   "fieldtype": "Check",
+   "label": "Enable Regularization"
+  },
+  {
+   "fieldname": "section_break_vfac",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "max_requests_per_month",
+   "fieldtype": "Int",
+   "label": "Max Requests Per Month"
+  },
+  {
+   "fieldname": "column_break_aaiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "regularization_from_hours",
+   "fieldtype": "Int",
+   "label": "Regularization From Hours"
+  },
+  {
+   "fieldname": "regularization_to_hours",
+   "fieldtype": "Int",
+   "label": "Regularization To Hours"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-10-23 18:53:19.347486",
+ "modified_by": "Administrator",
+ "module": "At Biometric Integration",
+ "name": "Attendance Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

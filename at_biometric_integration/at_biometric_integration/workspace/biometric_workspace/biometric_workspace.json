@@ -1,7 +1,7 @@
 {
  "charts": [],
- "content": "[{\"id\":\"title-block\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Biometric Workspace</span>\",\"col\":12}},{\"id\":\"daily-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Daily Attendance Report\",\"col\":3}},{\"id\":\"weekly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Weekly Attendance Report\",\"col\":3}},{\"id\":\"monthly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Attendance Report\",\"col\":3}},{\"id\":\"cKiR2-jfVQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Regularization Request\",\"col\":3}},{\"id\":\"8-K9k9cZ_B\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"iGjqTDE5jd\",\"type\":\"card\",\"data\":{\"card_name\":\"Biometric Device\",\"col\":4}},{\"id\":\"vOFunszjEY\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2025-05-23 15:06:40.947880",
+ "content": "[{\"id\":\"title-block\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Biometric Workspace</span>\",\"col\":12}},{\"id\":\"daily-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Daily Attendance Report\",\"col\":3}},{\"id\":\"weekly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Weekly Attendance Report\",\"col\":3}},{\"id\":\"monthly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Attendance Report\",\"col\":3}},{\"id\":\"cKiR2-jfVQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Regularization Request\",\"col\":3}},{\"id\":\"8-K9k9cZ_B\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"iGjqTDE5jd\",\"type\":\"card\",\"data\":{\"card_name\":\"Biometric Device\",\"col\":4}},{\"id\":\"iAitneaWQE\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2025-10-20 18:36:50.044139",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -17,7 +17,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Biometric Device",
-   "link_count": 3,
+   "link_count": 2,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -45,6 +45,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Attendance Regularization Request",
    "link_count": 0,
    "link_to": "Attendance Regularization Request",
@@ -52,15 +61,6 @@
    "onboard": 0,
    "report_ref_doctype": "Attendance",
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -83,20 +83,9 @@
    "onboard": 0,
    "report_ref_doctype": "Attendance",
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Attendance Regularization Request",
-   "link_count": 0,
-   "link_to": "Attendance Regularization Request",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Attendance",
-   "type": "Link"
   }
  ],
- "modified": "2025-05-23 15:08:37.693421",
+ "modified": "2025-10-23 14:42:12.319984",
  "modified_by": "Administrator",
  "module": "At Biometric Integration",
  "name": "Biometric Workspace",
@@ -106,6 +95,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
+ "sequence_id": 0.0,
  "shortcuts": [
   {
    "color": "Blue",
