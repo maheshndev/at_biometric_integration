@@ -1,7 +1,7 @@
-# Attendance Regularization Request Report - Updated Logic
+# Attendance Regularization Request Report - Enhanced Logic
 import frappe
-from datetime import datetime, timedelta, date
-from frappe.utils import getdate, format_time
+from datetime import datetime, timedelta, date, time
+from frappe.utils import getdate, format_time, get_datetime
 
 
 def execute(filters=None):
@@ -10,14 +10,23 @@ def execute(filters=None):
     # ---------------- Load Settings ----------------
     settings = frappe.get_single("Attendance Settings") if frappe.db.exists("DocType", "Attendance Settings") else None
 
-    enable_feature = getattr(settings, "enable_regularization", True) if settings else True
+    enable_feature = getattr(settings, "enable_regularization", True)
     min_delay_hours = getattr(settings, "regularization_from_hours", 24) or 24
     max_delay_hours = getattr(settings, "regularization_to_hours", 48) or 48
     max_requests_per_month = getattr(settings, "max_requests_per_month", 3) or 3
+    checkin_grace_start = getattr(settings, "checkin_grace_start_minutes", 60) or 60
+    checkout_grace_end = getattr(settings, "checkout_grace_end_minutes", 30) or 30
+    min_working_hours = getattr(settings, "min_working_hours", 8) or 8
+    enable_notifications = getattr(settings, "enable_notifications", True)
+    notification_template = getattr(settings, "notification_message_template", "You are eligible for Attendance Regularization on {date}")
 
+    # Convert numeric fields
     min_delay_hours = int(min_delay_hours)
     max_delay_hours = int(max_delay_hours)
     max_requests_per_month = int(max_requests_per_month)
+    checkin_grace_start = int(checkin_grace_start)
+    checkout_grace_end = int(checkout_grace_end)
+    min_working_hours = float(min_working_hours)
 
     # ---------------- Define Columns ----------------
     columns = [
@@ -33,8 +42,8 @@ def execute(filters=None):
         {"fieldname": "missed_punch", "label": "Missed Punch", "fieldtype": "Data", "width": 100},
         {"fieldname": "regularization_count", "label": "Regularization Count (Month)", "fieldtype": "Int", "width": 160},
         {"fieldname": "regularization_eligible", "label": "Regularization Eligible", "fieldtype": "Data", "width": 140},
-        {"fieldname": "action", "label": "Action", "fieldtype": "Data", "width": 120},
-        {"fieldname": "remarks", "label": "Remarks", "fieldtype": "Data", "width": 250},
+        {"fieldname": "action", "label": "Action", "fieldtype": "Data", "width": 160},
+        {"fieldname": "remarks", "label": "Remarks", "fieldtype": "Data", "width": 300},
     ]
 
     data = []
@@ -70,7 +79,6 @@ def execute(filters=None):
         in_time = format_time_only(record.in_time)
         out_time = format_time_only(record.out_time)
 
-        # Working hours formatting
         formatted_working_hours = "-"
         if record.working_hours:
             try:
@@ -81,7 +89,7 @@ def execute(filters=None):
             except:
                 formatted_working_hours = str(record.working_hours)
 
-        # Missed punch
+        # Missed punch detection
         missed_punch = "-"
         if not in_time and not out_time:
             missed_punch = "BOTH"
@@ -99,19 +107,18 @@ def execute(filters=None):
         if not enable_feature:
             remarks.append("Regularization Disabled")
 
-        # Check if on leave
-        if frappe.db.exists("Leave Application", {
+        # Check for leave
+        has_leave = frappe.db.exists("Leave Application", {
             "employee": emp,
             "from_date": ["<=", att_date],
             "to_date": [">=", att_date],
             "status": "Approved"
-        }):
-            remarks.append("On Leave")
+        })
 
         # Calculate hours since attendance date
         hours_passed = (today_dt - datetime.combine(att_date, datetime.min.time())).total_seconds() / 3600
 
-        # Get count of approved requests in the same month
+        # Monthly approved requests
         month_start = att_date.replace(day=1)
         month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
         completed_requests = frappe.db.count("Attendance Regularization", {
@@ -120,31 +127,37 @@ def execute(filters=None):
             "workflow_state": "Approved"
         })
 
-        # Apply new logic
-        if enable_feature and "On Leave" not in remarks:
-            if hours_passed < min_delay_hours:
-                remarks.append(f"Wait for {min_delay_hours} Hours to Regularize")
-                disable_action = True
-            elif min_delay_hours <= hours_passed <= max_delay_hours:
-                eligible = True
-                remarks.append("Eligible for Regularization")
-            elif hours_passed > max_delay_hours:
-                remarks.append(f"{max_delay_hours} Hours Exceeded - Regularization Not Allowed")
-                disable_action = True
+        # ---- New Regularization Rules ----
+        if enable_feature and not has_leave:
+            # (1) Within regularization time window
+            if min_delay_hours <= hours_passed <= max_delay_hours:
+                # (2) Missing check-in or out
+                if missed_punch in ["IN", "OUT", "BOTH"]:
+                    eligible = True
+                    remarks.append("Eligible: Missing check-in/out")
+                # (3) Working hours below threshold
+                elif record.working_hours and float(record.working_hours) < min_working_hours:
+                    eligible = True
+                    remarks.append(f"Eligible: Working hours below {min_working_hours} hours")
+                # (4) Grace time logic for check-in window
+                elif check_shift_checkin_grace(record, shift_start, shift_end, checkin_grace_start, checkout_grace_end):
+                    eligible = True
+                    remarks.append("Eligible: Check-in missing within grace window")
+            else:
+                if hours_passed < min_delay_hours:
+                    remarks.append(f"Wait for {min_delay_hours} hours to regularize")
+                elif hours_passed > max_delay_hours:
+                    remarks.append(f"{max_delay_hours} hours exceeded - not allowed")
 
-            # Monthly limit check
+            # Monthly limit
             if completed_requests >= max_requests_per_month:
-                remarks.append(f"Monthly Limit Reached ({max_requests_per_month})")
-                disable_action = True
+                remarks.append(f"Monthly limit reached ({max_requests_per_month})")
                 eligible = False
 
-        # Set Action button
-        if eligible and not disable_action:
-            action_label = "Regularize"
-        elif disable_action:
-            action_label = "Disabled"
-        else:
-            action_label = "-"
+        # Set action button and notification
+        action_label = "Create Regularization Request" if eligible else ""
+        if eligible and enable_notifications:
+            send_regularization_notification(emp, att_date, notification_template)
 
         data.append({
             "employee": emp,
@@ -158,9 +171,9 @@ def execute(filters=None):
             "status": status,
             "missed_punch": missed_punch,
             "regularization_count": completed_requests,
-            "regularization_eligible": "Yes" if eligible and not disable_action else "No",
+            "regularization_eligible": "Yes" if eligible else "No",
             "action": action_label,
-            "remarks": "; ".join(remarks) if remarks else ""
+            "remarks": "; ".join(remarks)
         })
 
     return columns, data
@@ -186,3 +199,32 @@ def format_time_only(dt_value):
         return format_time(dt_obj.time(), "HH:mm")
     except:
         return str(dt_value)
+
+
+def check_shift_checkin_grace(record, shift_start, shift_end, grace_start, grace_end):
+    """Check if no check-in was found between (shift_start - grace_start) and (shift_end - grace_end)."""
+    if not shift_start or not shift_end:
+        return False
+    try:
+        if not record.in_time:
+            return True
+        in_dt = get_datetime(record.in_time)
+        shift_start_dt = datetime.combine(getdate(record.attendance_date), shift_start)
+        shift_end_dt = datetime.combine(getdate(record.attendance_date), shift_end)
+        if in_dt < (shift_start_dt + timedelta(minutes=grace_start)) or in_dt > (shift_end_dt - timedelta(minutes=grace_end)):
+            return True
+    except:
+        pass
+    return False
+
+
+def send_regularization_notification(employee, att_date, template):
+    """Send in-app notification to employee when eligible."""
+    try:
+        user = frappe.db.get_value("Employee", employee, "user_id")
+        if user:
+            message = template.format(date=att_date.strftime("%Y-%m-%d"))
+            frappe.publish_realtime(event="msgprint", message=message, user=user)
+            frappe.create_log("Attendance Regularization Notification", message)
+    except Exception as e:
+        frappe.log_error(str(e), "Regularization Notification Error")
