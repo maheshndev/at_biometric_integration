@@ -100,7 +100,47 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
-  }
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "HR User",
+   "share": 1,
+   "write": 1
+  },
+    {
+     "create": 1,
+     "delete": 1,
+     "email": 1,
+     "print": 1,
+     "read": 1,
+     "role": "HR Manager",
+     "share": 1,
+     "write": 1
+    },
+    {
+     "create": 1,
+     "delete": 1,
+     "email": 1,
+     "print": 1,
+     "read": 1,
+     "role": "Project Manager",
+     "share": 1,
+     "write": 1
+    }
  ],
  "row_format": "Dynamic",
  "sort_field": "modified",
