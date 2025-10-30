@@ -128,7 +128,7 @@ def create_frappe_attendance_multi(devices):
             "time": record['timestamp'],
             "log_type": log_type,
             "device_id": record['user_id'],
-            "device_ip": record.get("device_ip")
+            "device_ip": record.get("device_ip"),
             "latitude": 0.0,
             "longitude": 0.0,
         })
