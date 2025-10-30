@@ -129,8 +129,8 @@ def create_frappe_attendance_multi(devices):
             "log_type": log_type,
             "device_id": record['user_id'],
             "device_ip": record.get("device_ip"),
-            "latitude": 0.0,
-            "longitude": 0.0,
+            "latitude": "1.10000",
+            "longitude": "1.10000",
         })
 
     for doc in checkins_to_create:
