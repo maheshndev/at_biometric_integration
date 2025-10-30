@@ -171,12 +171,3 @@ function validate_checkin_out(frm) {
     });
 }
 
-// ---------------- Restrict Non-Employee Access ----------------
-function apply_role_restrictions(frm) {
-    if (!frappe.user.has_role("Employee")) {
-        Object.keys(frm.fields_dict || {}).forEach(field => {
-            if (field !== "workflow_state") frm.set_df_property(field, "read_only", 1);
-        });
-        frm.disable_save();
-    }
-}
