@@ -72,7 +72,9 @@ class AttendanceRegularization(Document):
                 "employee": employee,
                 "time": time,
                 "log_type": log_type,
-                "company": company
+                "company": company,
+                "latitude": 0.0,
+                "longitude": 0.0
             }).insert(ignore_permissions=True)
 
     def create_or_update_attendance(self, employee_details):
