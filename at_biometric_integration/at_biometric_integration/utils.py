@@ -128,7 +128,9 @@ def create_frappe_attendance_multi(devices):
             "time": record['timestamp'],
             "log_type": log_type,
             "device_id": record['user_id'],
-            "device_ip": record.get("device_ip")
+            "device_ip": record.get("device_ip"),
+            "latitude": "0.00000",
+            "longitude": "0.00000",
         })
 
     for doc in checkins_to_create:
@@ -441,3 +443,4 @@ def mark_attendance_realtime():
 def mark_attendance():
     """Stub for backward compatibility or API usage."""
     return mark_attendance_realtime()
+ 

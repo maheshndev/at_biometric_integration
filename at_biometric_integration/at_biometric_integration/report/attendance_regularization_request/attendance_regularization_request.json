@@ -6,11 +6,40 @@
   "report_type": "Script Report",
   "is_standard": "Yes",
   "filters": [
-    { "fieldname": "period", "label": "Period", "fieldtype": "Select", "options": "Daily\nWeekly\nMonthly", "default": "Daily" },
-    { "fieldname": "from_date", "label": "From Date", "fieldtype": "Date" },
-    { "fieldname": "to_date", "label": "To Date", "fieldtype": "Date" },
-    { "fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee" },
-    { "fieldname": "month", "label": "Month", "fieldtype": "Select" },
-    { "fieldname": "year", "label": "Year", "fieldtype": "Select" }
+    {
+      "fieldname": "period",
+      "label": "Period",
+      "fieldtype": "Select",
+      "options": "Weekly\nMonthly",
+      "default": "Weekly"
+    },
+    {
+      "fieldname": "employee",
+      "label": "Employee",
+      "fieldtype": "Link",
+      "options": "Employee"
+    },
+    {
+      "fieldname": "from_date",
+      "label": "From Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "to_date",
+      "label": "To Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "month",
+      "label": "Month",
+      "fieldtype": "Select",
+      "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+    },
+    {
+      "fieldname": "year",
+      "label": "Year",
+      "fieldtype": "Select",
+      "options": "\n2023\n2024\n2025\n2026"
+    }
   ]
 }
