@@ -1,7 +1,7 @@
 {
  "charts": [],
  "content": "[{\"id\":\"title-block\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Biometric Workspace</span>\",\"col\":12}},{\"id\":\"daily-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Daily Attendance Report\",\"col\":3}},{\"id\":\"weekly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Weekly Attendance Report\",\"col\":3}},{\"id\":\"monthly-report\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Attendance Report\",\"col\":3}},{\"id\":\"cKiR2-jfVQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Regularization Request\",\"col\":3}},{\"id\":\"8-K9k9cZ_B\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"iGjqTDE5jd\",\"type\":\"card\",\"data\":{\"card_name\":\"Biometric Device\",\"col\":4}},{\"id\":\"iAitneaWQE\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2025-10-20 18:36:50.044139",
+ "creation": "2025-10-31 13:37:13.134452",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -85,7 +85,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-10-23 14:42:12.319984",
+ "modified": "2025-11-03 16:50:19.751195",
  "modified_by": "Administrator",
  "module": "At Biometric Integration",
  "name": "Biometric Workspace",
@@ -98,20 +98,19 @@
  "sequence_id": 0.0,
  "shortcuts": [
   {
+   "color": "Grey",
+   "doc_view": "",
+   "label": "Attendance Regularization Request",
+   "link_to": "",
+   "type": "URL",
+   "url": "/app/query-report/Attendance%20Regularization%20Request"
+  },
+  {
    "color": "Blue",
    "doc_view": "",
    "label": "Daily Attendance Report",
    "type": "URL",
    "url": "/app/query-report/Attendance%20Report%20Summary?period=Daily"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "",
-   "label": "Attendance Regularization Request",
-   "link_to": "",
-   "report_ref_doctype": "Attendance",
-   "type": "URL",
-   "url": "/app/query-report/Attendance%20Regularization%20Request?period=Daily"
   },
   {
    "color": "Green",
