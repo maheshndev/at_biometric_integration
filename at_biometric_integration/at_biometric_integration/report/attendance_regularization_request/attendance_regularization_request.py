@@ -6,7 +6,7 @@ from frappe.utils import getdate, format_time, get_datetime
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
-
+    
     # ---------------- Load Settings ----------------
     settings = frappe.get_single("Attendance Settings") if frappe.db.exists("DocType", "Attendance Settings") else None
 
@@ -116,7 +116,8 @@ def execute(filters=None):
         })
 
         # Calculate hours since attendance date
-        hours_passed = (today_dt - datetime.combine(att_date, datetime.min.time())).total_seconds() / 3600
+        hours_passed = calculate_hours_excluding_weekends(att_date, today_dt)
+
 
         # Monthly approved requests
         month_start = att_date.replace(day=1)
@@ -178,7 +179,6 @@ def execute(filters=None):
 
     return columns, data
 
-
 # ---------------- Helper Functions ----------------
 def get_shift_from_default_shift(employee):
     try:
@@ -190,7 +190,6 @@ def get_shift_from_default_shift(employee):
         pass
     return "-", "-"
 
-
 def format_time_only(dt_value):
     if not dt_value:
         return ""
@@ -199,7 +198,6 @@ def format_time_only(dt_value):
         return format_time(dt_obj.time(), "HH:mm")
     except:
         return str(dt_value)
-
 
 def check_shift_checkin_grace(record, shift_start, shift_end, grace_start, grace_end):
     """Check if no check-in was found between (shift_start - grace_start) and (shift_end - grace_end)."""
@@ -217,7 +215,6 @@ def check_shift_checkin_grace(record, shift_start, shift_end, grace_start, grace
         pass
     return False
 
-
 def send_regularization_notification(employee, att_date, template):
     """Send in-app notification to employee when eligible."""
     try:
@@ -228,3 +225,27 @@ def send_regularization_notification(employee, att_date, template):
             frappe.create_log("Attendance Regularization Notification", message)
     except Exception as e:
         frappe.log_error(str(e), "Regularization Notification Error")
+        
+# Calculate hours since attendance date (excluding weekends)
+def calculate_hours_excluding_weekends(start_date, end_datetime):
+    """Return total hours difference excluding weekends (Saturday/Sunday)."""
+    current_date = start_date
+    total_hours = 0
+
+    while current_date <= end_datetime.date():
+        if current_date.weekday() < 5:  # 0 = Monday, 6 = Sunday
+            if current_date == start_date:
+                start_dt = datetime.combine(start_date, time.min)
+            else:
+                start_dt = datetime.combine(current_date, time.min)
+
+            if current_date == end_datetime.date():
+                end_dt = end_datetime
+            else:
+                end_dt = datetime.combine(current_date, time.max)
+
+            total_hours += (end_dt - start_dt).total_seconds() / 3600
+        current_date += timedelta(days=1)
+
+    return total_hours
+
