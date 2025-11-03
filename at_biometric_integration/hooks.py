@@ -27,7 +27,6 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/at_biometric_integration/css/at_biometric_integration.css"
 # app_include_js = [
-#     "/assets/at_biometric_integration/js/employee.js",
 #     "/assets/at_biometric_integration/js/employee_checkin.js"
 # ]
 
@@ -48,9 +47,15 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_list_js = {
-  "Employee Checkin": "public/js/employee_checkin.js",
-  "Employee": "public/js/employee.js",
+    "Employee Checkin": [
+        "public/js/employee_checkin.js",
+        "public/js/checkin_import_from_listview.js"
+    ],
+    "Employee": [
+        "public/js/employee.js"
+    ]
 }
+
 
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -280,11 +285,12 @@ fixtures = [
     {
         "doctype": "Workflow",
         "filters": [["workflow_name", "=", "Attendance Regularization Approval"]]
-    },
-    { 
-     "doctype": "Workspace",
-     "filters": [["name", "=", "Biometric Workspace"]]
     }
+    # ,
+    # { 
+    #  "doctype": "Workspace",
+    #  "filters": [["name", "=", "Biometric Workspace"]]
+    # }
     
 
 ]
