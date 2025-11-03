@@ -2,9 +2,7 @@ import frappe
 
 def execute():
     """Create workflow states and actions for Attendance Regularization Approval workflow."""
-    workflow_name = "Attendance Regularization Approval"
-    doctype_name = "Attendance Regularization"
-
+    
     # Define workflow states
     states = [
         {"workflow_state_name": "Draft", "doc_status": 0, "is_optional_state": 0},
@@ -29,17 +27,6 @@ def execute():
 
     created_states = []
     created_actions = []
-
-    # Ensure workflow exists
-    if not frappe.db.exists("Workflow", workflow_name):
-        frappe.get_doc({
-            "doctype": "Workflow",
-            "workflow_name": workflow_name,
-            "document_type": doctype_name,
-            "is_active": 1,
-            "send_email_alert": 0
-        }).insert(ignore_permissions=True)
-        frappe.logger().info(f"Created new workflow '{workflow_name}' for {doctype_name}.")
 
     # Create workflow states
     for state in states:
