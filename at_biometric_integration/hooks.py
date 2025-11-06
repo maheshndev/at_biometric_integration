@@ -292,6 +292,6 @@ fixtures = [
     #  "filters": [["name", "=", "Biometric Workspace"]]
     # }
     
-
 ]
+after_migrate = ["at_biometric_integration.patches.workflow_state_action.execute"]
 

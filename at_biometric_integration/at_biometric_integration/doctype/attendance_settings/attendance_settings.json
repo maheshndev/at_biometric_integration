@@ -1,149 +1,159 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2025-10-14 16:29:23.616783",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "enable_regularization",
-  "section_break_vfac",
-  "regularization_from_hours",
-  "max_requests_per_month",
-  "checkin_grace_start_minutes",
-  "column_break_aaiu",
-  "regularization_to_hours",
-  "min_working_hours",
-  "checkout_grace_end_minutes",
-  "notification_settings_section",
-  "enable_notifications",
-  "notification_message_template"
- ],
- "fields": [
-  {
-   "default": "0",
-   "fieldname": "enable_regularization",
-   "fieldtype": "Check",
-   "label": "Enable Regularization"
-  },
-  {
-   "fieldname": "section_break_vfac",
-   "fieldtype": "Section Break",
-   "label": "Regularization Settings"
-  },
-  {
-   "fieldname": "max_requests_per_month",
-   "fieldtype": "Int",
-   "label": "Max Requests Per Month"
-  },
-  {
-   "fieldname": "column_break_aaiu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "regularization_from_hours",
-   "fieldtype": "Int",
-   "label": "Regularization From Hours"
-  },
-  {
-   "fieldname": "regularization_to_hours",
-   "fieldtype": "Int",
-   "label": "Regularization To Hours"
-  },
-  {
-   "fieldname": "checkin_grace_start_minutes",
-   "fieldtype": "Int",
-   "label": "Checkin Grace Start (mins)"
-  },
-  {
-   "fieldname": "min_working_hours",
-   "fieldtype": "Float",
-   "label": "Minimum Working Hours"
-  },
-  {
-   "fieldname": "checkout_grace_end_minutes",
-   "fieldtype": "Int",
-   "label": "Checkout Grace End (mins)"
-  },
-  {
-   "default": "0",
-   "fieldname": "enable_notifications",
-   "fieldtype": "Check",
-   "label": "Enable Notifications"
-  },
-  {
-   "fieldname": "notification_message_template",
-   "fieldtype": "Small Text",
-   "label": "Notification Message Template"
-  },
-  {
-   "fieldname": "notification_settings_section",
-   "fieldtype": "Section Break",
-   "label": "Notification Settings"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "issingle": 1,
- "links": [],
- "modified": "2025-10-28 15:02:46.173413",
- "modified_by": "Administrator",
- "module": "At Biometric Integration",
- "name": "Attendance Settings",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "Employee",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "HR User",
-   "share": 1,
-   "write": 1
-  },
+  "actions": [],
+  "allow_rename": 1,
+  "creation": "2025-10-14 16:29:23.616783",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "enable_regularization",
+    "section_break_vfac",
+    "regularization_from_hours",
+    "max_requests_per_month",
+    "checkin_grace_start_minutes",
+    "column_break_aaiu",
+    "regularization_to_hours",
+    "min_working_hours",
+    "checkout_grace_end_minutes",
+    "notification_settings_section",
+    "enable_notifications",
+    "notification_message_template"
+  ],
+  "fields": [
     {
-     "create": 1,
-     "delete": 1,
-     "email": 1,
-     "print": 1,
-     "read": 1,
-     "role": "HR Manager",
-     "share": 1,
-     "write": 1
+      "default": "0",
+      "fieldname": "enable_regularization",
+      "fieldtype": "Check",
+      "label": "Enable Regularization"
     },
     {
-     "create": 1,
-     "delete": 1,
-     "email": 1,
-     "print": 1,
-     "read": 1,
-     "role": "Project Manager",
-     "share": 1,
-     "write": 1
+      "fieldname": "section_break_vfac",
+      "fieldtype": "Section Break",
+      "label": "Regularization Settings"
+    },
+    {
+      "fieldname": "max_requests_per_month",
+      "fieldtype": "Int",
+      "label": "Max Requests Per Month"
+    },
+    {
+      "fieldname": "column_break_aaiu",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "regularization_from_hours",
+      "fieldtype": "Int",
+      "label": "Regularization From Hours"
+    },
+    {
+      "fieldname": "regularization_to_hours",
+      "fieldtype": "Int",
+      "label": "Regularization To Hours"
+    },
+    {
+      "fieldname": "checkin_grace_start_minutes",
+      "fieldtype": "Int",
+      "label": "Checkin Grace Start (mins)"
+    },
+    {
+      "fieldname": "min_working_hours",
+      "fieldtype": "Float",
+      "label": "Minimum Working Hours"
+    },
+    {
+      "fieldname": "checkout_grace_end_minutes",
+      "fieldtype": "Int",
+      "label": "Checkout Grace End (mins)"
+    },
+    {
+      "default": "0",
+      "fieldname": "enable_notifications",
+      "fieldtype": "Check",
+      "label": "Enable Notifications"
+    },
+    {
+      "fieldname": "notification_message_template",
+      "fieldtype": "Small Text",
+      "label": "Notification Message Template"
+    },
+    {
+      "fieldname": "notification_settings_section",
+      "fieldtype": "Section Break",
+      "label": "Notification Settings"
     }
- ],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+  ],
+  "grid_page_length": 50,
+  "index_web_pages_for_search": 1,
+  "issingle": 1,
+  "links": [],
+  "modified": "2025-10-28 15:02:46.173413",
+  "modified_by": "Administrator",
+  "module": "At Biometric Integration",
+  "name": "Attendance Settings",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "Employee",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "Employee Self Service",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "HR User",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "HR Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "Project Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "row_format": "Dynamic",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
 }

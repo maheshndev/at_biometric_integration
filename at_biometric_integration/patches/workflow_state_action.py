@@ -12,7 +12,7 @@ def execute():
         {"workflow_state_name": "Pending For HR Approval", "doc_status": 0, "is_optional_state": 0},
         {"workflow_state_name": "Approved By HR", "doc_status": 1, "is_optional_state": 0},
         {"workflow_state_name": "Rejected By HR", "doc_status": 1, "is_optional_state": 0},
-        {"workflow_state_name": "Canceled", "doc_status": 2, "is_optional_state": 0},
+        {"workflow_state_name": "Canceled", "doc_status": 2, "is_optional_state": 0}
     ]
 
     # Define workflow actions
@@ -41,11 +41,10 @@ def execute():
 
     # Create workflow actions
     for action in actions:
-        if not frappe.db.exists("Workflow Action Master", {"workflow_name": workflow_name, "action": action}):
+        if not frappe.db.exists("Workflow Action Master", {"workflow_action_name": action}):
             frappe.get_doc({
                 "doctype": "Workflow Action Master",
-                "workflow_name": workflow_name,
-                "action": action
+                "workflow_action_name": action
             }).insert(ignore_permissions=True)
             created_actions.append(action)
 
@@ -58,6 +57,6 @@ def execute():
         frappe.logger().info("No new workflow states created.")
 
     if created_actions:
-        frappe.logger().info(f"Created workflow actions for {workflow_name}: {', '.join(created_actions)}")
+        frappe.logger().info(f"Created workflow actions for : {', '.join(created_actions)}")
     else:
         frappe.logger().info("No new workflow actions created.")
