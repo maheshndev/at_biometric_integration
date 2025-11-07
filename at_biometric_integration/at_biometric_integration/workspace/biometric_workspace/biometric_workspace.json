@@ -96,9 +96,6 @@
     "quick_lists": [],
     "roles": [
         {
-            "role": "All"
-        },
-        {
             "role": "System Manager"
         },
         {
@@ -121,6 +118,9 @@
         },
         {
             "role": "Team Lead"
+        },
+        {
+            "role": "Workspace Manager"
         }
     ],
     "sequence_id": 0.0,
