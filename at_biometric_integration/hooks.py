@@ -293,5 +293,5 @@ fixtures = [
     # }
     
 ]
-after_migrate = ["at_biometric_integration.patches.workflow_state_action.execute"]
+after_migrate = ["at_biometric_integration.patches.workflow_state_action.execute","at_biometric_integration.patches.create_biometric_roles_and_permissions.execute"]
 
