@@ -1,6 +1,10 @@
 frappe.listview_settings['Employee Checkin'] = {
     onload: function(listview) {
-        listview.page.add_inner_button(__('Sync Biometric Data'), function() {
+        if (frappe.user.has_role('System Manager') || frappe.user.has_role('HR Manager') || frappe.user.has_role('Administrator') || frappe.user.has_role('Biometric Integration Manager') || frappe.user.has_role('Workforce Manager')) {
+       // if Biometric Device Settings values exists then only show the button
+         frappe.db.get_value('Biometric Device Settings', {}, 'name').then(res => {
+          if (res.name) {
+            listview.page.add_inner_button(__('Sync Biometric Data'), function() {
             // Show progress bar in msgprint
             let progress_html = `
                 <div>
@@ -36,7 +40,9 @@ frappe.listview_settings['Employee Checkin'] = {
                 }
             });
         },"Tools");
-
+        }
+       });
+        
         listview.page.add_inner_button(__('Mark Attendance'), function() {
             // Show progress bar in msgprint
             let progress_html = `
@@ -104,6 +110,7 @@ frappe.listview_settings['Employee Checkin'] = {
             $input.click();
         }, "Tools");
     }
+}
 };
 
 function parseCSVAndImport(csvText) {

@@ -48,8 +48,7 @@ app_license = "mit"
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_list_js = {
     "Employee Checkin": [
-        "public/js/employee_checkin.js",
-        "public/js/checkin_import_from_listview.js"
+        "public/js/employee_checkin.js"
     ],
     "Employee": [
         "public/js/employee.js"
