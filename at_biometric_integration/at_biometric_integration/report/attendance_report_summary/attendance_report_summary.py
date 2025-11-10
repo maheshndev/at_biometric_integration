@@ -161,7 +161,6 @@ def execute(filters=None):
         # Actual working hours from checkins
         row["working_hours"] = actual_working_duration(row.employee, row.date)
        
-        
         # Total working hours (from attendance)
         twh = row.get("t_working_hours")
         if twh is not None:
