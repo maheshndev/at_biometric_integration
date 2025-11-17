@@ -48,8 +48,7 @@ app_license = "mit"
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_list_js = {
     "Employee Checkin": [
-        "public/js/employee_checkin.js",
-        "public/js/checkin_import_from_listview.js"
+        "public/js/employee_checkin.js"
     ],
     "Employee": [
         "public/js/employee.js"
@@ -255,29 +254,39 @@ doctype_list_js = {
 # }
 
 scheduler_events = {
-    "hourly": [
-        "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
-    ],
-    "daily": [
-        "at_biometric_integration.at_biometric_integration.utils.mark_attendance"
-    ],
+
     "cron": {
         "*/15 * * * *": [
-            "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance"
+            "at_biometric_integration.api.fetch_and_upload_attendance"
         ]
-    }
+    },
+
+    "hourly": [
+        "at_biometric_integration.api.mark_attendance"
+    ],
+
+    "cron": {
+        "*/30 * * * *": [
+            "at_biometric_integration.attendance_processing.auto_submit_due_attendances"
+        ]
+    },
+    
+    "daily": [
+        "at_biometric_integration.utils.cleanup.cleanup_old_attendance_logs"
+    ]
 }
+
 # scheduler_events = {
 #     "cron": {
 #         "*/16 * * * *": [
-#             "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
-#             "at_biometric_integration.at_biometric_integration.utils.process_attendance"
+#             "at_biometric_integration.utils.fetch_and_upload_attendance",
+#             "at_biometric_integration.utils.process_attendance"
 #         ]
 #     },
 #     "daily": [
-#           "at_biometric_integration.at_biometric_integration.utils.fetch_and_upload_attendance",
+#           "at_biometric_integration.utils.fetch_and_upload_attendance",
 #         #   "at_biometric_integration.at_biometric_integration.doctype.attendance_regularization.attendance_regularization.check_missing_checkins",
-#           "at_biometric_integration.at_biometric_integration.utils.mark_daily_attendance"
+#           "at_biometric_integration.utils.mark_daily_attendance"
 #     ]
 # }
 
