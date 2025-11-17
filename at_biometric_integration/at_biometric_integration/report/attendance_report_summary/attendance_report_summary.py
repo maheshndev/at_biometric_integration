@@ -68,14 +68,15 @@ def execute(filters=None):
         {"label": "Out Time", "fieldname": "out_time", "fieldtype": "Data", "width": 100},
         {"label": "Actual Work Duration", "fieldname": "working_hours", "fieldtype": "Data", "width": 100},
         {"label": "Total Work Duration", "fieldname": "total_working_hours", "fieldtype": "Data", "width": 100},
-        {"label": "Early Entry", "fieldname": "early_entry", "fieldtype": "Data", "width": 100},
-        {"label": "Late By", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
-        {"label": "Early Going By", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
-        {"label": "Late Going", "fieldname": "late_going", "fieldtype": "Data", "width": 100},
-        {"label": "Over Time", "fieldname": "over_time", "fieldtype": "Data", "width": 100},
+        {"label": "Early Entry (Time HH:MM)", "fieldname": "early_entry", "fieldtype": "Data", "width": 100},
+        {"label": "Late By (Time HH:MM)", "fieldname": "late_entry", "fieldtype": "Data", "width": 100},
+        {"label": "Early Going By (Time HH:MM)", "fieldname": "early_going", "fieldtype": "Data", "width": 100},
+        {"label": "Late Going (Time HH:MM)", "fieldname": "late_going", "fieldtype": "Data", "width": 100},
+        {"label": "Over Time (Time HH:MM)", "fieldname": "over_time", "fieldtype": "Data", "width": 100},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
         {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
         {"label": "Department", "fieldname": "department", "fieldtype": "Link", "options": "Department", "width": 120},
+        {"label": "Remark", "fieldname": "remark", "fieldtype": "Data", "width": 200}
     ]
 
     today = getdate(nowdate())
