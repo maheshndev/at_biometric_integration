@@ -2,7 +2,7 @@
   "actions": [],
   "allow_import": 1,
   "allow_rename": 1,
-  "autoname": "format:ATR-{#}",
+  "autoname": "format:ATR-{#####}",
   "creation": "2025-05-13 18:32:35.759764",
   "doctype": "DocType",
   "engine": "InnoDB",
