@@ -2,6 +2,7 @@
   "actions": [],
   "allow_import": 1,
   "allow_rename": 1,
+  "autoname": "format:ATR-{#}",
   "creation": "2025-05-13 18:32:35.759764",
   "doctype": "DocType",
   "engine": "InnoDB",
@@ -99,6 +100,7 @@
   "modified_by": "Administrator",
   "module": "At Biometric Integration",
   "name": "Attendance Regularization",
+  "naming_rule": "Expression",
   "owner": "Administrator",
   "permissions": [
     {
